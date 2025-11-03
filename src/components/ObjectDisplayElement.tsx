@@ -326,7 +326,7 @@ export const ObjectDisplayElement = <
               color={"text.primary"}
               {...(props?.viewOnly ? omit(itemProps, "disabled") : itemProps)}
             >
-              {typeof typedValue === "string" ? typedValue : getItemLabel(typedValue)}
+              {(typeof typedValue === "string") ? typedValue : getItemLabel(typedValue as NonNullable<TValue>)}
             </Typography>
           );
         },

@@ -1,5 +1,5 @@
 import { resolve } from "path";
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   build: {
@@ -36,14 +36,14 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
-    include: ['**/*.{test,spec}.{ts,tsx}'],
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    include: ["**/*.{test,spec}.{ts,tsx}"],
     coverage: {
-      reporter: ['text', 'json', 'html'],
+      provider: "istanbul"
     },
     typecheck: {
-      tsconfig: './tsconfig.test.json'
-    }
-  }
+      tsconfig: "./tsconfig.test.json",
+    },
+  },
 });
