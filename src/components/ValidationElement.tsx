@@ -7,7 +7,7 @@ import { useFormError } from "../hooks";
 /**
  * Props for the RHFHiddenInput component
  */
-export interface HiddenElementProps<TFieldValues extends FieldValues> {
+export interface ValidationElementProps<TFieldValues extends FieldValues> {
   /**
    * Name of the field in the form
    */
@@ -22,11 +22,11 @@ export interface HiddenElementProps<TFieldValues extends FieldValues> {
   formControlProps?: Omit<FormControlProps, "error">;
 }
 
-export const HiddenElement = <TFieldValues extends FieldValues = FieldValues>({
+export const ValidationElement = <TFieldValues extends FieldValues = FieldValues>({
   name,
   rules,
   formControlProps = {},
-}: HiddenElementProps<TFieldValues>): JSX.Element => {
+}: ValidationElementProps<TFieldValues>): JSX.Element => {
   const {
     register,
     formState: { errors },

@@ -1,5 +1,6 @@
 import { FieldError, FieldErrors, FieldValues } from 'react-hook-form';
-import { get } from 'lodash';
+import lodash from 'lodash';
+const { get } = lodash;
 
 /**
  * A hook to get the error message for a field from react-hook-form

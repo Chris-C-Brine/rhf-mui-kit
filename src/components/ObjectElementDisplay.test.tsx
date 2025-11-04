@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { ObjectDisplayElement } from './ObjectDisplayElement';
+import { ObjectElementDisplay } from './ObjectElementDisplay';
 import { ThemeProvider, createTheme } from '@mui/material';
 
 // Define a test item type
@@ -10,9 +10,9 @@ interface TestItem {
   name: string;
 }
 
-// Mock the AutocompleteDisplayElement
-vi.mock('./AutocompleteDisplayElement', () => ({
-  AutocompleteDisplayElement: ({ 
+// Mock the AutocompleteElementDisplay
+vi.mock('./AutocompleteElementDisplay', () => ({
+  AutocompleteElementDisplay: ({
     name, 
     options, 
     autocompleteProps 
@@ -84,7 +84,7 @@ const FormWrapper = ({ children }: { children: React.ReactNode }) => {
       multipleObjectField: []
     }
   });
-  
+
   return (
     <ThemeProvider theme={theme}>
       <FormProvider {...methods}>
@@ -94,11 +94,11 @@ const FormWrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-describe('ObjectDisplayElement', () => {
+describe('ObjectElementDisplay', () => {
   it('renders with basic props', () => {
     render(
       <FormWrapper>
-        <ObjectDisplayElement 
+        <ObjectElementDisplay
           name="objectField" 
           options={testItems}
           getItemKey={(item) => item ? item.id : 'null'}
@@ -106,7 +106,7 @@ describe('ObjectDisplayElement', () => {
         />
       </FormWrapper>
     );
-    
+
     // Check that the component renders
     expect(screen.getByTestId('autocomplete-display-element')).toBeInTheDocument();
     expect(screen.getByTestId('name')).toHaveTextContent('objectField');
@@ -118,7 +118,7 @@ describe('ObjectDisplayElement', () => {
   it('handles freeSolo mode correctly', () => {
     render(
       <FormWrapper>
-        <ObjectDisplayElement 
+        <ObjectElementDisplay
           name="objectField" 
           options={testItems}
           getItemKey={(item) => item ? item.id : 'null'}
@@ -128,16 +128,16 @@ describe('ObjectDisplayElement', () => {
         />
       </FormWrapper>
     );
-    
+
     // Check that freeSolo is enabled
     expect(screen.getByTestId('free-solo')).toHaveTextContent('true');
-    
+
     // Simulate typing in the input field
     fireEvent.change(screen.getByTestId('input-field'), { target: { value: 'New Item' } });
-    
+
     // Simulate selecting the new item
     fireEvent.click(screen.getByTestId('simulate-change'));
-    
+
     // After adding a new item, the options count should increase
     // Note: This is testing our mock behavior, not the actual component behavior
     // In a real component, we would need to check the DOM for the new item
@@ -146,7 +146,7 @@ describe('ObjectDisplayElement', () => {
   it('handles multiple selection mode', () => {
     render(
       <FormWrapper>
-        <ObjectDisplayElement 
+        <ObjectElementDisplay
           name="multipleObjectField" 
           options={testItems}
           getItemKey={(item) => item ? item.id : 'null'}
@@ -155,7 +155,7 @@ describe('ObjectDisplayElement', () => {
         />
       </FormWrapper>
     );
-    
+
     // Check that the component renders with the correct name
     expect(screen.getByTestId('name')).toHaveTextContent('multipleObjectField');
   });
@@ -163,7 +163,7 @@ describe('ObjectDisplayElement', () => {
   it('applies custom chip props when provided', () => {
     render(
       <FormWrapper>
-        <ObjectDisplayElement 
+        <ObjectElementDisplay
           name="multipleObjectField" 
           options={testItems}
           getItemKey={(item) => item ? item.id : 'null'}
@@ -175,7 +175,7 @@ describe('ObjectDisplayElement', () => {
         />
       </FormWrapper>
     );
-    
+
     // In a real test, we would check that the chip has the correct color
     // But since we're mocking the component, we can only check that it renders
     expect(screen.getByTestId('autocomplete-display-element')).toBeInTheDocument();

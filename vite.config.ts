@@ -21,8 +21,8 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "RhfMuiKit",
-      fileName: "index",
-      formats: ["es"],
+      fileName: (format) => `index.${format === 'es' ? 'js' : 'cjs'}`,
+      formats: ["es", "cjs"],
     },
     rollupOptions: {
       external: [
@@ -31,8 +31,10 @@ export default defineConfig({
         "react/jsx-runtime",
         "@mui/material",
         "react-hook-form",
+        "react-hook-form-mui",
         "@emotion/styled",
         "@emotion/react",
+        "lodash",
       ],
       output: {
         globals: {
@@ -41,12 +43,14 @@ export default defineConfig({
           "react/jsx-runtime": "jsxRuntime",
           "@mui/material": "MaterialUI",
           "react-hook-form": "ReactHookForm",
+          "react-hook-form-mui": "ReactHookFormMui",
           "@emotion/styled": "emotionStyled",
           "@emotion/react": "emotionReact",
+          "lodash": "_",
         },
       },
     },
     sourcemap: true,
-    emptyOutDir: true,
+    emptyOutDir: false,
   },
 });

@@ -2,9 +2,10 @@ import { AutocompleteElement, type AutocompleteElementProps } from "react-hook-f
 import { type ChipTypeMap } from "@mui/material";
 import type { FieldPath, FieldValues } from "react-hook-form";
 import { type ElementType, useMemo } from "react";
-import { merge } from "lodash";
+import lodash from "lodash";
+const { merge } = lodash;
 
-export type DisplayAutocompleteProps<
+export type AutocompleteElementDisplayProps<
   TValue,
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
@@ -23,7 +24,7 @@ export type DisplayAutocompleteProps<
 > &
   Viewable;
 
-export const AutocompleteDisplayElement = <
+export const AutocompleteElementDisplay = <
   TValue,
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
@@ -37,7 +38,7 @@ export const AutocompleteDisplayElement = <
   textFieldProps,
   autocompleteProps,
   ...props
-}: DisplayAutocompleteProps<
+}: AutocompleteElementDisplayProps<
   TValue,
   Multiple,
   DisableClearable,
@@ -46,7 +47,7 @@ export const AutocompleteDisplayElement = <
   TFieldValues,
   TName
 >) => {
-  const autocompleteAdjustedProps: DisplayAutocompleteProps<
+  const autocompleteAdjustedProps: AutocompleteElementDisplayProps<
     TValue,
     Multiple,
     DisableClearable,

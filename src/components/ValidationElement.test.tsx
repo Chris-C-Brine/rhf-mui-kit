@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { HiddenElement } from './HiddenElement';
+import { ValidationElement } from './ValidationElement';
 
 // Wrapper component to provide the form context
 const FormWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -18,11 +18,11 @@ const FormWrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-describe('HiddenElement', () => {
+describe('ValidationElement', () => {
   it('renders a hidden input with the correct name', () => {
     render(
       <FormWrapper>
-        <HiddenElement 
+        <ValidationElement
           name="hiddenField" 
           rules={{ required: 'This field is required' }} 
         />
@@ -38,7 +38,7 @@ describe('HiddenElement', () => {
   it('does not show error message when there is no error', () => {
     render(
       <FormWrapper>
-        <HiddenElement 
+        <ValidationElement
           name="hiddenField" 
           rules={{ required: 'This field is required' }} 
         />

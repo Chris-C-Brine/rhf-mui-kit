@@ -16,7 +16,7 @@ import {
   Typography,
   createTheme,
 } from "@mui/material";
-import { AutocompleteDisplayElement, ObjectDisplayElement, HiddenElement } from "./src";
+import { AutocompleteElementDisplay, ObjectElementDisplay, ValidationElement } from "./src";
 
 // Create a theme
 const theme = createTheme({
@@ -56,13 +56,13 @@ const skills = [
   "PHP",
 ];
 
-// Component to demonstrate AutocompleteDisplayElement
+// Component to demonstrate AutocompleteElementDisplay
 const AutocompleteDemo = () => {
   return (
     <Card variant="outlined" sx={{ mb: 4 }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          AutocompleteDisplayElement
+          AutocompleteElementDisplay
         </Typography>
         <Typography variant="body2" color="text.secondary">
           An enhanced Autocomplete component with view-only mode support.
@@ -73,7 +73,7 @@ const AutocompleteDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Standard Mode
             </Typography>
-            <AutocompleteDisplayElement
+            <AutocompleteElementDisplay
               name="skill"
               label="Select a skill"
               options={skills}
@@ -85,7 +85,7 @@ const AutocompleteDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               View-Only Mode
             </Typography>
-            <AutocompleteDisplayElement
+            <AutocompleteElementDisplay
               name="viewOnlySkill"
               label="Selected skill"
               options={skills}
@@ -98,7 +98,7 @@ const AutocompleteDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Multiple Selection
             </Typography>
-            <AutocompleteDisplayElement
+            <AutocompleteElementDisplay
               name="multipleSkills"
               label="Select multiple skills"
               options={skills}
@@ -111,7 +111,7 @@ const AutocompleteDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Multiple Selection (View-Only)
             </Typography>
-            <AutocompleteDisplayElement
+            <AutocompleteElementDisplay
               name="viewOnlyMultipleSkills"
               label="Selected skills"
               options={skills}
@@ -126,13 +126,13 @@ const AutocompleteDemo = () => {
   );
 };
 
-// Component to demonstrate ObjectDisplayElement
+// Component to demonstrate ObjectElementDisplay
 const ObjectDisplayDemo = () => {
   return (
     <Card variant="outlined" sx={{ mb: 4 }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          ObjectDisplayElement
+          ObjectElementDisplay
         </Typography>
         <Typography variant="body2" color="text.secondary">
           An Autocomplete component that works with complex object values.
@@ -143,7 +143,7 @@ const ObjectDisplayDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Single Object Selection
             </Typography>
-            <ObjectDisplayElement
+            <ObjectElementDisplay
               name="country"
               label="Select a country"
               options={countries}
@@ -157,7 +157,7 @@ const ObjectDisplayDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Single Object Selection (View-Only)
             </Typography>
-            <ObjectDisplayElement
+            <ObjectElementDisplay
               name="viewOnlyCountry"
               label="Selected country"
               options={countries}
@@ -172,7 +172,7 @@ const ObjectDisplayDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Multiple Object Selection
             </Typography>
-            <ObjectDisplayElement
+            <ObjectElementDisplay
               name="multipleCountries"
               label="Select multiple countries"
               options={countries}
@@ -187,7 +187,7 @@ const ObjectDisplayDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Multiple Object Selection with Checkboxes
             </Typography>
-            <ObjectDisplayElement
+            <ObjectElementDisplay
               name="multipleCountriesWithCheckboxes"
               label="Select multiple countries"
               options={countries}
@@ -203,7 +203,7 @@ const ObjectDisplayDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Free Solo Mode
             </Typography>
-            <ObjectDisplayElement
+            <ObjectElementDisplay
               name="freeSoloCountry"
               label="Enter a country (free solo)"
               options={countries}
@@ -221,7 +221,7 @@ const ObjectDisplayDemo = () => {
             <Typography variant="subtitle1" gutterBottom>
               Custom Chip Props
             </Typography>
-            <ObjectDisplayElement
+            <ObjectElementDisplay
               name="customChipCountries"
               label="Select countries with custom chips"
               options={countries}
@@ -241,13 +241,13 @@ const ObjectDisplayDemo = () => {
   );
 };
 
-// Component to demonstrate HiddenElement
-const HiddenElementDemo = () => {
+// Component to demonstrate ValidationElement
+const ValidationElementDemo = () => {
   return (
     <Card variant="outlined" sx={{ mb: 4 }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          HiddenElement
+          ValidationElement
         </Typography>
         <Typography variant="body2" color="text.secondary">
           A hidden input field with React Hook Form integration.
@@ -260,7 +260,7 @@ const HiddenElementDemo = () => {
           </Typography>
         </Box>
 
-        <HiddenElement name="nested.hiddenField" rules={{ required: "This field is required" }} />
+        <ValidationElement name="nested.hiddenField" rules={{ required: "This field is required" }} />
       </CardContent>
     </Card>
   );
@@ -316,7 +316,7 @@ const App = () => {
           >
             <AutocompleteDemo />
             <ObjectDisplayDemo />
-            <HiddenElementDemo />
+            <ValidationElementDemo />
             <Box textAlign={"center"}>
               <Button variant={"outlined"} onClick={() => methods.reset()} sx={{ mr: 3 }}>
                 reset

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { AutocompleteDisplayElement } from './AutocompleteDisplayElement';
+import { AutocompleteElementDisplay } from './AutocompleteElementDisplay';
 import { ThemeProvider, createTheme } from '@mui/material';
 
 // Mock the AutocompleteElement from react-hook-form-mui
@@ -13,12 +13,12 @@ vi.mock('react-hook-form-mui', async () => {
       // Extract props
       const { name, autocompleteProps = {}, textFieldProps = {} } = props;
 
-      // Get the viewOnly prop from the parent component (AutocompleteDisplayElement)
+      // Get the viewOnly prop from the parent component (AutocompleteElementDisplay)
       // This is a hack to simulate the behavior of the actual component
       // In the actual component, viewOnly is passed to AutocompleteElement via autocompleteProps
       const viewOnly = props.viewOnly;
 
-      // Simulate the merging of props that happens in AutocompleteDisplayElement
+      // Simulate the merging of props that happens in AutocompleteElementDisplay
       // When viewOnly is true, readOnly, disabled, and disableClearable should be true
       // regardless of what's passed in autocompleteProps
       const readOnly = viewOnly === true ? true : (autocompleteProps?.readOnly === undefined ? false : autocompleteProps.readOnly);
@@ -62,11 +62,11 @@ const FormWrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-describe('AutocompleteDisplayElement', () => {
+describe('AutocompleteElementDisplay', () => {
   it('renders with default props', () => {
     render(
       <FormWrapper>
-        <AutocompleteDisplayElement 
+        <AutocompleteElementDisplay
           name="autocompleteField" 
           options={[]}
         />
@@ -86,7 +86,7 @@ describe('AutocompleteDisplayElement', () => {
   it('applies viewOnly mode correctly', () => {
     render(
       <FormWrapper>
-        <AutocompleteDisplayElement 
+        <AutocompleteElementDisplay
           name="autocompleteField" 
           options={[]}
           viewOnly={true}
@@ -104,7 +104,7 @@ describe('AutocompleteDisplayElement', () => {
   it('respects custom textFieldProps', () => {
     render(
       <FormWrapper>
-        <AutocompleteDisplayElement 
+        <AutocompleteElementDisplay
           name="autocompleteField" 
           options={[]}
           textFieldProps={{ variant: 'outlined' }}
@@ -121,7 +121,7 @@ describe('AutocompleteDisplayElement', () => {
     // we'll test that the component accepts and passes custom autocompleteProps
     render(
       <FormWrapper>
-        <AutocompleteDisplayElement 
+        <AutocompleteElementDisplay
           name="autocompleteField" 
           options={[]}
           autocompleteProps={{ 

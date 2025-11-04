@@ -13,9 +13,9 @@ A specialized component library that extends React Hook Form with Material UI in
 
 ## Components
 
-- **AutocompleteDisplayElement**: Enhanced autocomplete with view-only mode support
-- **ObjectDisplayElement**: Autocomplete for complex objects with key/label extraction
-- **HiddenElement**: Hidden form field with validation support
+- **AutocompleteElementDisplay**: Enhanced autocomplete with view-only mode support
+- **ObjectElementDisplay**: Autocomplete for complex objects with key/label extraction
+- **ValidationElement**: Hidden form field with validation support
 
 ## Hooks
 
@@ -38,13 +38,13 @@ npm install @chris-c-brine/rhf-mui-kit
 ## Basic Usage
 
 ```tsx
-import { ObjectDisplayElement } from '@chris-c-brine/rhf-mui-kit';
+import { ObjectElementDisplay } from '@chris-c-brine/rhf-mui-kit';
 import { FormContainer } from 'react-hook-form-mui';
 
 // Example with object values
 const MyForm = () => (
   <FormContainer defaultValues={{ user: null }}>
-    <ObjectDisplayElement
+    <ObjectElementDisplay
       name="user"
       label="Select User"
       options={users}

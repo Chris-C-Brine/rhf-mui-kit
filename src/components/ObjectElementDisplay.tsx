@@ -2,16 +2,17 @@ import { type ElementType, ReactNode, useMemo, useState } from "react";
 import { Checkbox, Chip, Typography, type ChipProps, type ChipTypeMap } from "@mui/material";
 import type { FieldPath, FieldValues } from "react-hook-form";
 import {
-  AutocompleteDisplayElement,
-  type DisplayAutocompleteProps,
-} from "./AutocompleteDisplayElement";
+  AutocompleteElementDisplay,
+  type AutocompleteElementDisplayProps,
+} from "./AutocompleteElementDisplay";
 import { getAutocompleteRenderValue } from "../utils";
 import { useController } from "react-hook-form-mui";
 import { useOnMount } from "../hooks";
-import { omit } from "lodash";
+import lodash from "lodash";
+const { omit } = lodash;
 
 /**
- * Extends DisplayAutocompleteProps with additional properties for handling object values.
+ * Extends AutocompleteElementDisplayProps with additional properties for handling object values.
  *
  * @template TValue - The type of the option values
  * @template Multiple - Boolean flag indicating if multiple selections are allowed
@@ -21,7 +22,7 @@ import { omit } from "lodash";
  * @template TFieldValues - The type of the form values
  * @template TName - The type of the field name
  */
-export type DisplayObjectCompleteProps<
+export type ObjectElementDisplayProps<
   TValue,
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
@@ -29,7 +30,7 @@ export type DisplayObjectCompleteProps<
   ChipComponent extends ElementType = ChipTypeMap["defaultComponent"],
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> = DisplayAutocompleteProps<
+> = AutocompleteElementDisplayProps<
   TValue,
   Multiple,
   DisableClearable,
@@ -83,7 +84,7 @@ export type DisplayObjectCompleteProps<
 
 /**
  * A form component that displays a searchable dropdown for selecting object values.
- * Extends AutocompleteDisplayElement with object-specific functionality.
+ * Extends AutocompleteElementDisplay with object-specific functionality.
  *
  * Features:
  * - Works with complex object values instead of just primitive types
@@ -102,7 +103,7 @@ export type DisplayObjectCompleteProps<
  *
  * @returns A React component for selecting object values
  */
-export const ObjectDisplayElement = <
+export const ObjectElementDisplay = <
   TValue,
   Multiple extends boolean | undefined,
   DisableClearable extends boolean | undefined,
@@ -121,7 +122,7 @@ export const ObjectDisplayElement = <
   freeSolo,
   control,
   ...props
-}: DisplayObjectCompleteProps<
+}: ObjectElementDisplayProps<
   TValue,
   Multiple,
   DisableClearable,
@@ -216,7 +217,7 @@ export const ObjectDisplayElement = <
   // console.log({ allOptions });
 
   return (
-    <AutocompleteDisplayElement
+    <AutocompleteElementDisplay
       name={name}
       control={control}
       options={allOptions}
@@ -296,8 +297,6 @@ export const ObjectDisplayElement = <
             return typedValue.map((v, index) => {
               // @ts-expect-error a key is returned, and the linter doesn't pick this up
               const { key, ...chipProps } = getItemProps({ index });
-              // const { key, ...rawChipProps } = getItemProps({ index });
-              // const chipProps = omit(rawChipProps, "onDelete");
 
               const label = typeof v === "string" ? v : getItemLabel(v);
 
@@ -316,7 +315,6 @@ export const ObjectDisplayElement = <
           }
 
           // @ts-expect-error a key is returned, and the linter doesn't pick this up
-          // const { key, ...rawChipProps } = getItemProps({ index: 0 });
           const { key, ...rawChipProps } = getItemProps({ index: 0 });
           const itemProps = omit(rawChipProps, "onDelete");
           return (

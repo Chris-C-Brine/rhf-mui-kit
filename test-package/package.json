@@ -1,0 +1,17 @@
+{
+  "name": "test-rhf-mui-kit",
+  "version": "1.0.0",
+  "description": "Test package for rhf-mui-kit",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@chris-c-brine/rhf-mui-kit": "file:../chris-c-brine-rhf-mui-kit-0.2.0.tgz",
+    "@mui/material": "^7.3.4",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-hook-form": "^7.66.0",
+    "react-hook-form-mui": "^8.0.0"
+  }
+}

@@ -1,3 +1,3 @@
-export * from "./AutocompleteDisplayElement";
-export * from "./ObjectDisplayElement";
-export * from "./HiddenElement"
+export * from "./AutocompleteElementDisplay";
+export * from "./ObjectElementDisplay";
+export * from "./ValidationElement"
