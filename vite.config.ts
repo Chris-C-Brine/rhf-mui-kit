@@ -2,6 +2,21 @@ import { resolve } from "path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    include: ["**/*.{test,spec}.{ts,tsx}"],
+    coverage: {
+      provider: "istanbul",
+    },
+    typecheck: {
+      tsconfig: "./tsconfig.test.json",
+    },
+  },
+  server: {
+    open: true,
+  },
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
@@ -33,17 +48,5 @@ export default defineConfig({
     },
     sourcemap: true,
     emptyOutDir: true,
-  },
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: ["./src/test/setup.ts"],
-    include: ["**/*.{test,spec}.{ts,tsx}"],
-    coverage: {
-      provider: "istanbul"
-    },
-    typecheck: {
-      tsconfig: "./tsconfig.test.json",
-    },
   },
 });

@@ -88,4 +88,4 @@ npm run test
 
 ## License
 
-[AAL](LICENSE) © Christopher C. Brine
+[AAL](https://github.com/Chris-C-Brine/rhf-mui-kit/blob/HEAD/LICENSE) © Christopher C. Brine

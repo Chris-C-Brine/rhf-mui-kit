@@ -260,7 +260,7 @@ const HiddenElementDemo = () => {
           </Typography>
         </Box>
 
-        <HiddenElement name="hiddenField" rules={{ required: "This field is required" }} />
+        <HiddenElement name="nested.hiddenField" rules={{ required: "This field is required" }} />
       </CardContent>
     </Card>
   );
@@ -280,7 +280,9 @@ const App = () => {
       multipleCountriesWithCheckboxes: [countries[2], countries[3]],
       freeSoloCountry: countries[4],
       customChipCountries: [countries[5], countries[6]],
-      hiddenField: "",
+      nested: {
+        hiddenField: "",
+      }
     },
   });
 
