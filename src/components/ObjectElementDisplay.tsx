@@ -1,15 +1,22 @@
-import { type ElementType, ReactNode, useMemo, useState } from "react";
-import { Checkbox, Chip, Typography, type ChipProps, type ChipTypeMap } from "@mui/material";
+import { type ElementType, ReactNode, useMemo, useState, useEffect } from "react";
+import { Checkbox, Chip, type ChipProps, type ChipTypeMap } from "@mui/material";
 import type { FieldPath, FieldValues } from "react-hook-form";
 import {
   AutocompleteElementDisplay,
   type AutocompleteElementDisplayProps,
 } from "./AutocompleteElementDisplay";
-import { getAutocompleteRenderValue } from "../utils";
+import { getAutocompleteTypedValue } from "../utils";
 import { useController } from "react-hook-form-mui";
-import { useOnMount } from "../hooks";
-import lodash from "lodash";
-const { omit } = lodash;
+
+/**
+ * Interface for special "add option" objects used in freeSolo mode
+ * These objects represent a new item that can be created from user input
+ */
+interface AddOptionType {
+  __isAddOption: true;
+  inputValue: string;
+  [key: string]: any; // Allow for additional properties from stringToNewItem
+}
 
 /**
  * Extends AutocompleteElementDisplayProps with additional properties for handling object values.
@@ -80,6 +87,17 @@ export type ObjectElementDisplayProps<
    * @returns Additional props to apply to the Chip component
    */
   getChipProps?: (props: { value: TValue; index: number }) => Partial<ChipProps> | undefined;
+
+  /**
+   * Optional function to transform the value before it's updated in the form.
+   * This allows for custom processing or enrichment of the selected value.
+   *
+   * @param value - The value that would normally be sent to the form
+   * @returns The transformed value to be stored in the form
+   */
+  transformValue?: Multiple extends true
+    ? (value: TValue[]) => TFieldValues
+    : (value: TValue | null) => TFieldValues | null;
 };
 
 /**
@@ -118,6 +136,7 @@ export const ObjectElementDisplay = <
   getItemLabel,
   getChipProps,
   stringToNewItem,
+  transformValue,
   name,
   freeSolo,
   control,
@@ -137,84 +156,57 @@ export const ObjectElementDisplay = <
   const { field } = useController({ name, control });
 
   /**
-   * State for the current text input in free-solo mode
-   */
-  const [freeSoloValue, setFreeSoloValue] = useState("");
-
-  /**
    * State for storing dynamically added options that aren't in the original options list
+   * This includes:
+   * - Default values that aren't in the option list (regardless of freeSolo mode)
+   * - Dynamically added values from freeSolo mode
    */
-  const [newOptions, setNewOptions] = useState<TValue[]>([]);
+  const [newOptions, setNewOptions] = useState<TValue[]>(() => {
+      if (!field.value) return [];
+      const fieldValues: TValue[] = Array.isArray(field.value) ? field.value : [field.value];
+      return fieldValues.filter((value) => {
+        // Skip string values as they're handled differently
+        if (typeof value === "string") return false;
+
+        // Check if this value exists in options
+        return !options.some((option) => getItemKey(option) === getItemKey(value));
+      });
+  });
 
   /**
-   * On component mount, handle initial field values that aren't in the options
-   * This is important for loading saved data that might reference items not in the current options
+   * Update newOptions when field.value changes
+   * This ensures that any new values added to the field after rendering
+   * are properly included in newOptions and displayed
    */
-  useOnMount(() => {
-    if (!freeSolo || !field.value) return;
+  useEffect(() => {
+    if (!field.value) return;
 
-    // Handle both single and multiple selection modes
     const fieldValues: TValue[] = Array.isArray(field.value) ? field.value : [field.value];
-
-    // Filter out values that are already in options
     const newFieldOptions = fieldValues.filter((value) => {
       // Skip string values as they're handled differently
       if (typeof value === "string") return false;
 
-      // Check if this value exists in options
-      return !options.some((option) => getItemKey(option) === getItemKey(value));
+      // Check if this value exists in options or newOptions
+      return !options.some((option) => getItemKey(option) === getItemKey(value)) &&
+             !newOptions.some((option) => getItemKey(option) === getItemKey(value));
     });
 
-    // Add new values to newOptions if any were found
-    if (newFieldOptions.length > 0) setNewOptions(newFieldOptions);
-  });
-
-  /**
-   * Creates a new item from the current free-solo text input
-   * Returns undefined if:
-   * - Free-solo mode is disabled
-   * - No stringToNewItem converter is provided
-   * - Input is empty
-   * - An item with the same key already exists in options or newOptions
-   *
-   * @returns The new item created from the free-solo input, or undefined
-   */
-  const freeSoloItem = useMemo(() => {
-    if (!freeSolo || !stringToNewItem || !freeSoloValue.length) return undefined;
-    const item = stringToNewItem(freeSoloValue);
-    const itemKey = getItemKey(item);
-    if (options.some((option) => getItemKey(option) === itemKey)) return undefined;
-    if (newOptions.some((option) => getItemKey(option) === itemKey)) return undefined;
-    return item;
-  }, [stringToNewItem, freeSoloValue, newOptions, freeSolo, options, getItemKey]);
+    // Only update newOptions if there are new values to add
+    if (newFieldOptions.length > 0) {
+      setNewOptions(prevOptions => [...prevOptions, ...newFieldOptions]);
+    }
+  }, [field.value, options, newOptions, getItemKey]);
 
   /**
    * Creates a combined and deduplicated list of all available options
-   * Includes:
-   * - Original options from props
-   * - Dynamically added options from newOptions
-   * - Current free-solo item if it exists
+   * Includes original options from props and dynamically added options from newOptions
    *
-   * @returns Array of all available options with duplicates removed
+   * @returns Array of all available options
    */
   const allOptions = useMemo(() => {
-    if (!freeSolo) return options;
+    return [...options, ...newOptions];
+  }, [options, newOptions]);
 
-    // Combine all options and deduplicate by key
-    const combinedOptions = [...options, ...newOptions];
-    if (freeSoloItem) combinedOptions.push(freeSoloItem);
-
-    // Deduplicate using getItemKey
-    const uniqueKeys = new Set();
-    return combinedOptions.filter((option) => {
-      const key = getItemKey(option);
-      if (uniqueKeys.has(key)) return false;
-      uniqueKeys.add(key);
-      return true;
-    });
-  }, [options, newOptions, freeSolo, freeSoloItem, getItemKey]);
-
-  // console.log({ allOptions });
 
   return (
     <AutocompleteElementDisplay
@@ -231,12 +223,52 @@ export const ObjectElementDisplay = <
 
         /**
          * Filters options based on the input value
-         * Checks if the option key contains the input value (case-insensitive)
+         * Checks if the option key or label contains the input value (case-insensitive)
+         * For freeSolo mode, adds a special "Add [value]" option when there's no exact match
          */
-        filterOptions: (options, { inputValue }) =>
-          options.filter((option) =>
-            getItemKey(option).toLowerCase().includes(inputValue.toLowerCase()),
-          ),
+        filterOptions: (options, { inputValue }) => {
+          if (!inputValue) {
+            return options;
+          }
+
+          // Filter options that match the input value
+          const filteredOptions = options.filter((option) => {
+            const key = getItemKey(option).toLowerCase();
+            const searchValue = inputValue.toLowerCase();
+            if (key.includes(searchValue)) return true;
+
+            // Convert label to string to ensure we can use includes() on it
+            const label = String(getItemLabel(option)).toLowerCase();
+
+            // Return true if either the key or label contains the search value
+            return label.includes(searchValue);
+          });
+
+          // For freeSolo mode, check if there's an exact match
+          if (freeSolo && stringToNewItem && inputValue.length > 0) {
+            // Check if there's an exact match in the filtered options
+            const hasExactMatch = filteredOptions.some(option => {
+              const label = String(getItemLabel(option)).toLowerCase();
+              return label.toLowerCase() === inputValue.toLowerCase();
+            });
+
+            // If there's no exact match, add a special option to create a new item
+            if (!hasExactMatch) {
+              // Create a special option with a __isAddOption flag
+              const addOption: AddOptionType = {
+                __isAddOption: true,
+                inputValue,
+                // Include properties from stringToNewItem for type compatibility
+                ...stringToNewItem(inputValue)
+              };
+
+              // Add the special option at the beginning of the filtered options
+              return [addOption as unknown as TValue, ...filteredOptions];
+            }
+          }
+
+          return filteredOptions;
+        },
         freeSolo, // Allowed to enter own string value
         autoComplete: true,
         autoHighlight: true, // The first option is highlighted by default
@@ -246,42 +278,152 @@ export const ObjectElementDisplay = <
          * Custom rendering for each option in the dropdown list
          * Displays a checkbox for multiple selection if showCheckbox is true
          * Uses getItemLabel to render the option label
+         * For special add options, displays "Add '[value]'"
          */
-        renderOption: (liProps, option, { selected }) => (
-          <li {...liProps} key={`${name}-option-${getItemKey(option)}`}>
-            {props?.showCheckbox && <Checkbox sx={{ marginRight: 1 }} checked={selected} />}
-            {typeof option === "string" ? option : getItemLabel(option)}
-          </li>
-        ),
-
-        /**
-         * Handles changes to the selected value(s)
-         * In free-solo mode, adds the new item to newOptions when selected
-         * Delegates to the original onChange handler if provided
-         */
-        onChange: (event, value, reason, details) => {
-          if (freeSolo && freeSoloItem) {
-            if (stringToNewItem == undefined) {
-              throw new Error("Must implement stringToNewItem with freeSolo!");
-            }
-            setNewOptions((prev) => [...prev, freeSoloItem]);
-            setFreeSoloValue("");
+        renderOption: (liProps, option, { selected }, ownerState) => {
+          // Check if this is a special add option (only in freeSolo mode)
+          if (ownerState?.freeSolo && typeof option === 'object' && option !== null && '__isAddOption' in option) {
+            // Cast to AddOptionType to access inputValue property
+            const addOption = option as unknown as AddOptionType;
+            return (
+              <li {...liProps} key={`${name}-add-option-${addOption.inputValue}`}>
+                Add: '{addOption.inputValue}'
+              </li>
+            );
           }
 
-          autocompleteProps?.onChange?.(event, value, reason, details);
+          // Regular option rendering
+          return (
+            <li {...liProps} key={`${name}-option-${getItemKey(option)}`}>
+              {/* Show checkbox if explicitly requested or if in multiple selection mode */}
+              {(props?.showCheckbox || ownerState?.multiple) && <Checkbox sx={{ marginRight: 1 }} checked={selected} />}
+              {typeof option === "string" ? option : getItemLabel(option)}
+            </li>
+          );
         },
 
-        /**
-         * Handles changes to the input text
-         * Updates freeSoloValue state with the current input
-         * Delegates to the original onInputChange handler if provided
-         */
-        onInputChange: (event, value, reason) => {
-          // event.preventDefault();
-          setFreeSoloValue(value);
+        onChange: (event, value, reason, details) => {
+          if (freeSolo && stringToNewItem) {
+            // Handle special add option selection
+            if (typeof value === 'object' && value !== null && '__isAddOption' in value) {
+              // Cast to AddOptionType to access inputValue property
+              const addOption = value as unknown as AddOptionType;
+              const inputValue = addOption.inputValue;
+              const newItem = stringToNewItem(inputValue);
 
-          // Call the original onInputChange if it exists
-          autocompleteProps?.onInputChange?.(event, value, reason);
+              // Handle multiple selection mode differently
+              if (props.multiple) {
+                // Get the current field value as an array
+                const currentValues = Array.isArray(field.value) ? field.value : [];
+                const newValues = [...currentValues, newItem];
+
+                // Apply transformValue if provided
+                if (transformValue) {
+                  field.onChange(transformValue(newValues));
+                } else {
+                  field.onChange(newValues);
+                }
+              } else {
+                // Apply transformValue if provided
+                if (transformValue) {
+                  field.onChange(transformValue(newItem));
+                } else {
+                  field.onChange(newItem);
+                }
+              }
+
+              // Add to newOptions if it doesn't exist already
+              const itemKey = getItemKey(newItem);
+              const itemExists = [...options, ...newOptions].some(
+                option => getItemKey(option) === itemKey
+              );
+
+              if (!itemExists) {
+                setNewOptions([...newOptions, newItem]);
+              }
+              return;
+            }
+
+            // Handle string values (single selection)
+            if (typeof value === "string" && value.length > 0) {
+              const newItem = stringToNewItem(value);
+
+              // Handle multiple selection mode differently
+              if (props.multiple) {
+                // Get the current field value as an array
+                const currentValues = Array.isArray(field.value) ? field.value : [];
+                const newValues = [...currentValues, newItem];
+
+                // Apply transformValue if provided
+                if (transformValue) {
+                  field.onChange(transformValue(newValues));
+                } else {
+                  field.onChange(newValues);
+                }
+              } else {
+                // Apply transformValue if provided
+                if (transformValue) {
+                  field.onChange(transformValue(newItem));
+                } else {
+                  field.onChange(newItem);
+                }
+              }
+
+              // Add to newOptions if it doesn't exist already
+              const itemKey = getItemKey(newItem);
+              const itemExists = [...options, ...newOptions].some(
+                option => getItemKey(option) === itemKey
+              );
+
+              if (!itemExists) {
+                setNewOptions([...newOptions, newItem]);
+              }
+              return;
+            }
+
+            // Handle array values (multiple selection)
+            if (Array.isArray(value) && props.multiple) {
+              // Convert any string values to objects and handle special add options
+              const newValues = value?.map(item => {
+                if (typeof item === "string" && item.length > 0) {
+                  return stringToNewItem(item);
+                }
+                if (typeof item === 'object' && item !== null && '__isAddOption' in item) {
+                  // Cast to AddOptionType to access inputValue property
+                  const addOption = item as unknown as AddOptionType;
+                  return stringToNewItem(addOption.inputValue);
+                }
+                return item;
+              }) ?? [];
+
+              // Apply transformValue if provided
+              if (transformValue) {
+                field.onChange(transformValue(newValues));
+              } else {
+                field.onChange(newValues);
+              }
+
+              // Add any new items to newOptions
+              const existingKeys = [...options, ...newOptions].map(option => getItemKey(option));
+              const newItems = newValues.filter(
+                item => typeof item !== "string" && !existingKeys.includes(getItemKey(item))
+              );
+
+              if (newItems.length > 0) {
+                setNewOptions([...newOptions, ...newItems]);
+              }
+              return;
+            }
+          }
+
+          // Default behavior for non-freeSolo cases
+          if (transformValue && value !== null) {
+            // Apply transformValue if provided
+            field.onChange(transformValue(value as TValue | TValue[]));
+          } else {
+            // Otherwise use the default onChange handler
+            autocompleteProps?.onChange?.(event, value, reason, details);
+          }
         },
 
         /**
@@ -291,42 +433,40 @@ export const ObjectElementDisplay = <
          * Uses getItemLabel to render the value labels
          */
         renderValue: (value, getItemProps, ownerState) => {
-          const typedValue = getAutocompleteRenderValue(value, ownerState);
+          const typedValue = getAutocompleteTypedValue(value, ownerState);
 
           if (Array.isArray(typedValue)) {
             return typedValue.map((v, index) => {
               // @ts-expect-error a key is returned, and the linter doesn't pick this up
               const { key, ...chipProps } = getItemProps({ index });
 
+              // For freeSolo values, we need to ensure we're getting the label correctly
+              // If v is a string, use it directly, otherwise use getItemLabel
               const label = typeof v === "string" ? v : getItemLabel(v);
 
               // Get additional chip props based on the value if the function is provided
               const valueSpecificProps =
                 typeof v !== "string" && getChipProps ? getChipProps({ value: v, index }) : {};
+
               return (
                 <Chip
                   key={`${name}-chip-${key}`}
-                  label={label}
                   {...valueSpecificProps}
                   {...chipProps}
+                  label={label}
                 />
               );
             });
           }
 
-          // @ts-expect-error a key is returned, and the linter doesn't pick this up
-          const { key, ...rawChipProps } = getItemProps({ index: 0 });
-          const itemProps = omit(rawChipProps, "onDelete");
-          return (
-            <Typography
-              component={"span"}
-              key={`${name}-value-${key}`}
-              color={"text.primary"}
-              {...(props?.viewOnly ? omit(itemProps, "disabled") : itemProps)}
-            >
-              {(typeof typedValue === "string") ? typedValue : getItemLabel(typedValue as NonNullable<TValue>)}
-            </Typography>
-          );
+          // For single selection, if the value is a string, use it directly
+          // Otherwise, use getItemLabel to extract the label from the object
+          // Make sure typedValue is not null or undefined before calling getItemLabel
+          return typeof typedValue === "string"
+            ? typedValue
+            : typedValue
+              ? getItemLabel(typedValue as NonNullable<TValue>)
+              : "";
         },
         ...autocompleteProps,
       }}

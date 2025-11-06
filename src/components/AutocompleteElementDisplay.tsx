@@ -3,6 +3,8 @@ import { type ChipTypeMap } from "@mui/material";
 import type { FieldPath, FieldValues } from "react-hook-form";
 import { type ElementType, useMemo } from "react";
 import lodash from "lodash";
+import { getTextElementDisplayProps } from "../utils";
+
 const { merge } = lodash;
 
 export type AutocompleteElementDisplayProps<
@@ -21,8 +23,10 @@ export type AutocompleteElementDisplayProps<
   ChipComponent,
   TFieldValues,
   TName
-> &
-  Viewable;
+> & {
+  viewOnly?: boolean;
+  disableUnderline?: boolean;
+}
 
 export const AutocompleteElementDisplay = <
   TValue,
@@ -33,7 +37,7 @@ export const AutocompleteElementDisplay = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
-  viewOnly,
+  viewOnly = undefined as boolean | undefined,
   disableUnderline,
   textFieldProps,
   autocompleteProps,
@@ -55,52 +59,45 @@ export const AutocompleteElementDisplay = <
     ChipComponent,
     TFieldValues,
     TName
-  >['autocompleteProps'] = useMemo(
+  >["autocompleteProps"] = useMemo(
     () =>
-      merge(
+      merge<
+        AutocompleteElementDisplayProps<TValue, Multiple, DisableClearable, FreeSolo, ChipComponent, TFieldValues, TName>["autocompleteProps"],
+        AutocompleteElementDisplayProps<TValue, Multiple, DisableClearable, FreeSolo, ChipComponent, TFieldValues, TName>["autocompleteProps"],
+        AutocompleteElementDisplayProps<TValue, Multiple, DisableClearable, FreeSolo, ChipComponent, TFieldValues, TName>["autocompleteProps"]
+      >(
         {
           readOnly: viewOnly,
-          disableClearable: viewOnly,
+          disableClearable: autocompleteProps?.disableClearable || viewOnly as DisableClearable,
           disabled: viewOnly,
-          slotProps: {
-            input: { disableUnderline },
-            chip: {
-              disabled: false,
-            },
-          },
+
         },
         autocompleteProps,
         viewOnly
           ? {
               sx: {
-                ".MuiAutocomplete-endAdornment": {
-                  display: "none",
-                },
                 ".MuiAutocomplete-tag": {
-                  opacity: "1 !important"
+                  opacity: "1 !important",
                 },
               },
             }
           : {},
       ),
-    [autocompleteProps, viewOnly, disableUnderline],
+    [autocompleteProps, viewOnly],
   );
 
-  const textFieldAdjustedProps = useMemo(
-    () => merge(viewOnly ? { variant: "standard" } : {}, textFieldProps),
-    [viewOnly, textFieldProps],
+  const textFieldAdjustedProps= useMemo(
+    () => getTextElementDisplayProps(textFieldProps, viewOnly, disableUnderline),
+    [textFieldProps, viewOnly, disableUnderline],
   );
 
   return (
     <AutocompleteElement
-      {...props}
       autocompleteProps={autocompleteAdjustedProps}
       textFieldProps={textFieldAdjustedProps}
+      {...props}
     />
   );
 };
 
-type Viewable = {
-  viewOnly?: boolean;
-  disableUnderline?: boolean;
-};
+

@@ -9,12 +9,14 @@ console.log('useOnMount:', useOnMount);
 import {
   AutocompleteElementDisplay,
   ObjectElementDisplay,
+  TextElementDisplay,
   ValidationElement
 } from '@chris-c-brine/rhf-mui-kit';
 
 // Log the imported components to verify they exist
 console.log('AutocompleteElementDisplay:', AutocompleteElementDisplay);
 console.log('ObjectElementDisplay:', ObjectElementDisplay);
+console.log('TextElementDisplay:', TextElementDisplay);
 console.log('ValidationElement:', ValidationElement);
 
-console.log('All imports successful!');
+console.log('\nAll imports successful!');

@@ -50,6 +50,7 @@ export default defineConfig([
       // Rule enables & overrides
       rules: {
         "react/react-in-jsx-scope": "off", // ESLint: 'React' must be in scope when using JSX (react/react-in-js-scope)
+        "@typescript-eslint/consistent-type-imports": "error",
         "react-hooks/exhaustive-deps": [
           "error", // Checks effect dependencies
           {

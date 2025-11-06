@@ -16,7 +16,7 @@ import {
   Typography,
   createTheme,
 } from "@mui/material";
-import { AutocompleteElementDisplay, ObjectElementDisplay, ValidationElement } from "./src";
+import { AutocompleteElementDisplay, ObjectElementDisplay, TextElementDisplay, ValidationElement } from "./src";
 
 // Create a theme
 const theme = createTheme({
@@ -74,7 +74,7 @@ const AutocompleteDemo = () => {
               Standard Mode
             </Typography>
             <AutocompleteElementDisplay
-              name="skill"
+              name="Autocomplete Standard Mode"
               label="Select a skill"
               options={skills}
               required
@@ -83,10 +83,10 @@ const AutocompleteDemo = () => {
 
           <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="subtitle1" gutterBottom>
-              View-Only Mode
+              Standard Mode (View-Only)
             </Typography>
             <AutocompleteElementDisplay
-              name="viewOnlySkill"
+              name="Autocomplete Standard Mode"
               label="Selected skill"
               options={skills}
               viewOnly
@@ -99,7 +99,7 @@ const AutocompleteDemo = () => {
               Multiple Selection
             </Typography>
             <AutocompleteElementDisplay
-              name="multipleSkills"
+              name="Autocomplete Multiple Selection"
               label="Select multiple skills"
               options={skills}
               multiple
@@ -112,8 +112,8 @@ const AutocompleteDemo = () => {
               Multiple Selection (View-Only)
             </Typography>
             <AutocompleteElementDisplay
-              name="viewOnlyMultipleSkills"
-              label="Selected skills"
+              name="Autocomplete Multiple Selection"
+              label="Select multiple skills"
               options={skills}
               multiple
               viewOnly
@@ -144,7 +144,7 @@ const ObjectDisplayDemo = () => {
               Single Object Selection
             </Typography>
             <ObjectElementDisplay
-              name="country"
+              name="Single Object Selection"
               label="Select a country"
               options={countries}
               getItemKey={(country) => country?.id || ""}
@@ -158,7 +158,7 @@ const ObjectDisplayDemo = () => {
               Single Object Selection (View-Only)
             </Typography>
             <ObjectElementDisplay
-              name="viewOnlyCountry"
+              name="Single Object Selection"
               label="Selected country"
               options={countries}
               getItemKey={(country) => country?.id || ""}
@@ -170,25 +170,10 @@ const ObjectDisplayDemo = () => {
 
           <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="subtitle1" gutterBottom>
-              Multiple Object Selection
-            </Typography>
-            <ObjectElementDisplay
-              name="multipleCountries"
-              label="Select multiple countries"
-              options={countries}
-              getItemKey={(country) => country?.id || ""}
-              getItemLabel={(country) => country?.name || ""}
-              multiple
-              required
-            />
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Typography variant="subtitle1" gutterBottom>
               Multiple Object Selection with Checkboxes
             </Typography>
             <ObjectElementDisplay
-              name="multipleCountriesWithCheckboxes"
+              name="Multiple Object Selection with Checkboxes"
               label="Select multiple countries"
               options={countries}
               getItemKey={(country) => country?.id || ""}
@@ -201,10 +186,27 @@ const ObjectDisplayDemo = () => {
 
           <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="subtitle1" gutterBottom>
-              Free Solo Mode
+              Multiple Object Selection with Checkboxes  (View-Only)
             </Typography>
             <ObjectElementDisplay
-              name="freeSoloCountry"
+              name="Multiple Object Selection with Checkboxes"
+              label="Select multiple countries"
+              options={countries}
+              getItemKey={(country) => country?.id || ""}
+              getItemLabel={(country) => country?.name || ""}
+              multiple
+              showCheckbox
+              viewOnly
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Object Free Solo Mode
+            </Typography>
+            <ObjectElementDisplay
+              name="Object Free Solo Mode"
               label="Enter a country (free solo)"
               options={countries}
               getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
@@ -216,13 +218,51 @@ const ObjectDisplayDemo = () => {
               required
             />
           </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Object Free Solo Mode (View-Only)
+            </Typography>
+            <ObjectElementDisplay
+              name="Object Free Solo Mode"
+              label="Enter a country (free solo)"
+              options={countries}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
+              getItemLabel={(country) =>
+                typeof country === "string" ? country : country?.name || ""
+              }
+              freeSolo
+              stringToNewItem={(value) => ({ id: `new-${value}`, name: value })}
+              viewOnly
+              required
+            />
+          </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="subtitle1" gutterBottom>
               Custom Chip Props
             </Typography>
             <ObjectElementDisplay
-              name="customChipCountries"
+              name="Custom Chip Props"
+              label="Select countries with custom chips"
+              options={countries}
+              freeSolo
+              getItemKey={(country) => country?.id || ""}
+              getItemLabel={(country) => country?.name || ""}
+              stringToNewItem={(value) => ({ id: `new-${value}`, name: value })}
+              getChipProps={({ index }) => ({
+                color: index % 2 === 0 ? "primary" : "secondary",
+                variant: "outlined",
+              })}
+              multiple
+              required
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Custom Chip Props (View-Only)
+            </Typography>
+            <ObjectElementDisplay
+              name="Custom Chip Props"
               label="Select countries with custom chips"
               options={countries}
               getItemKey={(country) => country?.id || ""}
@@ -232,6 +272,221 @@ const ObjectDisplayDemo = () => {
                 variant: "outlined",
               })}
               multiple
+              viewOnly
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Transform Value Example
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              This example transforms the selected value by adding a timestamp.
+            </Typography>
+            <ObjectElementDisplay
+              name="Transform Value Example"
+              label="Select a country"
+              options={countries}
+              getItemKey={(country) => country?.id || ""}
+              getItemLabel={(country) => country?.name || ""}
+              transformValue={(value) => ({
+                ...value,
+                selectedAt: new Date().toISOString(),
+              })}
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Transform Value Example (View-Only)
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              View-only mode of the transform value example.
+            </Typography>
+            <ObjectElementDisplay
+              name="Transform Value Example"
+              label="Selected country with timestamp"
+              options={countries}
+              getItemKey={(country) => country?.id || ""}
+              getItemLabel={(country) => country?.name || ""}
+              transformValue={(value) => ({
+                ...value,
+                selectedAt: new Date().toISOString(),
+              })}
+              viewOnly
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Transform Multiple Values
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              This example transforms multiple selected values by adding a priority field.
+            </Typography>
+            <ObjectElementDisplay
+              name="Transform Multiple Values"
+              label="Select multiple countries"
+              options={countries}
+              getItemKey={(country) => country?.id || ""}
+              getItemLabel={(country) => country?.name || ""}
+              multiple
+              transformValue={(values) => 
+                Array.isArray(values) 
+                  ? values.map((value, index) => ({
+                      ...value,
+                      priority: index + 1,
+                    }))
+                  : values
+              }
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Transform Multiple Values (View-Only)
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              View-only mode of the multiple values transform example.
+            </Typography>
+            <ObjectElementDisplay
+              name="Transform Multiple Values"
+              label="Selected countries with priority"
+              options={countries}
+              getItemKey={(country) => country?.id || ""}
+              getItemLabel={(country) => country?.name || ""}
+              multiple
+              transformValue={(values) => 
+                Array.isArray(values) 
+                  ? values.map((value, index) => ({
+                      ...value,
+                      priority: index + 1,
+                    }))
+                  : values
+              }
+              viewOnly
+              required
+            />
+          </Grid>
+        </Grid>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Component to demonstrate TextElementDisplay
+const TextElementDisplayDemo = () => {
+  return (
+    <Card variant="outlined" sx={{ mb: 4 }}>
+      <CardContent>
+        <Typography variant="h5" gutterBottom>
+          TextElementDisplay
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          A text field component with view-only capabilities.
+        </Typography>
+
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Standard Mode
+            </Typography>
+            <TextElementDisplay
+              name="Text Standard Mode"
+              label="Text Input"
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Standard Mode (View-Only)
+            </Typography>
+            <TextElementDisplay
+              name="Text Standard Mode"
+              label="View-Only Text"
+              viewOnly
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              With Helper Text
+            </Typography>
+            <TextElementDisplay
+              name="Text With Helper Text"
+              label="Text with Helper"
+              helperText="This is a helper text"
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              With Helper Text (View-Only) Without Underline
+            </Typography>
+            <TextElementDisplay
+              name="Text With Helper Text"
+              label="Text with Helper"
+              helperText="This is a helper text"
+              viewOnly
+              disableUnderline
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              With Placeholder
+            </Typography>
+            <TextElementDisplay
+              name="Text With Placeholder"
+              label="With Placeholder"
+              placeholder="Enter text here"
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              With Placeholder (View-Only)
+            </Typography>
+            <TextElementDisplay
+              name="Text With Placeholder"
+              label="With Placeholder"
+              placeholder="Enter text here"
+              viewOnly
+              required
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Multiline Text Field
+            </Typography>
+            <TextElementDisplay
+              name="Multiline Text Field"
+              label="Multiline Text"
+              multiline
+              rows={4}
+              required
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Multiline Text Field (View-Only)
+            </Typography>
+            <TextElementDisplay
+              name="Multiline Text Field"
+              label="Multiline Text"
+              multiline
+              rows={4}
+              viewOnly
               required
             />
           </Grid>
@@ -260,7 +515,7 @@ const ValidationElementDemo = () => {
           </Typography>
         </Box>
 
-        <ValidationElement name="nested.hiddenField" rules={{ required: "This field is required" }} />
+        <ValidationElement name="Nested.HiddenField" rules={{ required: "This field is required" }} />
       </CardContent>
     </Card>
   );
@@ -270,18 +525,24 @@ const ValidationElementDemo = () => {
 const App = () => {
   const methods = useForm({
     defaultValues: {
-      skill: "React",
-      viewOnlySkill: "TypeScript",
-      multipleSkills: ["JavaScript", "TypeScript"],
-      viewOnlyMultipleSkills: ["React", "Node.js"],
-      country: countries[0],
-      viewOnlyCountry: countries[1],
-      multipleCountries: [countries[0], countries[1]],
-      multipleCountriesWithCheckboxes: [countries[2], countries[3]],
-      freeSoloCountry: countries[4],
-      customChipCountries: [countries[5], countries[6]],
-      nested: {
-        hiddenField: "",
+      "Autocomplete Standard Mode": "React",
+      "Autocomplete Multiple Selection": ["JavaScript", "TypeScript"],
+      "Single Object Selection": countries[0],
+      "Multiple Object Selection with Checkboxes": [countries[0], countries[1]],
+      "Object Free Solo Mode": { id: "SO", name: "Some One" },
+      "Custom Chip Props": [countries[5], countries[6], { id: "SO", name: "Some One" }],
+      "Transform Value Example": { ...countries[2], selectedAt: new Date().toISOString() },
+      "Transform Multiple Values": [
+        { ...countries[3], priority: 1 },
+        { ...countries[4], priority: 2 },
+        { ...countries[7], priority: 3 },
+      ],
+      "Text Standard Mode": "",
+      "Text With Helper Text": "Text with helper",
+      "Text With Placeholder": "",
+      "Multiline Text Field": "This is a multiline\ntext field example\nwith multiple lines",
+      Nested: {
+        HiddenField: "",
       }
     },
   });
@@ -312,10 +573,17 @@ const App = () => {
         <FormProvider {...methods}>
           <form
             noValidate={true}
-            onSubmit={methods.handleSubmit((data) => console.log("Form data:", data))}
+            onSubmit={methods.handleSubmit(
+              (data) => console.log("Form data:", data),
+              (errors, event) => {
+                console.error("Form errors:", errors);
+                event?.target && console.log(methods.getValues());
+              },
+            )}
           >
             <AutocompleteDemo />
             <ObjectDisplayDemo />
+            <TextElementDisplayDemo />
             <ValidationElementDemo />
             <Box textAlign={"center"}>
               <Button variant={"outlined"} onClick={() => methods.reset()} sx={{ mr: 3 }}>
