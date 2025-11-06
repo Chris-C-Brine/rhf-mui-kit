@@ -157,20 +157,19 @@ export const ObjectElementDisplay = <
 
   /**
    * State for storing dynamically added options that aren't in the original options list
-   * This includes:
-   * - Default values that aren't in the option list (regardless of freeSolo mode)
-   * - Dynamically added values from freeSolo mode
+   * Includes both default values and values added during freeSolo mode
    */
   const [newOptions, setNewOptions] = useState<TValue[]>(() => {
-      if (!field.value) return [];
-      const fieldValues: TValue[] = Array.isArray(field.value) ? field.value : [field.value];
-      return fieldValues.filter((value) => {
-        // Skip string values as they're handled differently
-        if (typeof value === "string") return false;
+    if (!field.value) return [];
 
-        // Check if this value exists in options
-        return !options.some((option) => getItemKey(option) === getItemKey(value));
-      });
+    // Convert field value to array for consistent handling
+    const fieldValues: TValue[] = Array.isArray(field.value) ? field.value : [field.value];
+
+    // Keep only object values that don't exist in the options array
+    return fieldValues.filter(value => 
+      typeof value !== "string" && 
+      !options.some(option => getItemKey(option) === getItemKey(value))
+    );
   });
 
   /**
@@ -182,14 +181,11 @@ export const ObjectElementDisplay = <
     if (!field.value) return;
 
     const fieldValues: TValue[] = Array.isArray(field.value) ? field.value : [field.value];
-    const newFieldOptions = fieldValues.filter((value) => {
-      // Skip string values as they're handled differently
-      if (typeof value === "string") return false;
-
-      // Check if this value exists in options or newOptions
-      return !options.some((option) => getItemKey(option) === getItemKey(value)) &&
-             !newOptions.some((option) => getItemKey(option) === getItemKey(value));
-    });
+    const newFieldOptions = fieldValues.filter(
+      (value) => 
+        typeof value !== "string" && 
+        ![...options, ...newOptions].some(option => getItemKey(option) === getItemKey(value))
+    );
 
     // Only update newOptions if there are new values to add
     if (newFieldOptions.length > 0) {
@@ -198,14 +194,9 @@ export const ObjectElementDisplay = <
   }, [field.value, options, newOptions, getItemKey]);
 
   /**
-   * Creates a combined and deduplicated list of all available options
-   * Includes original options from props and dynamically added options from newOptions
-   *
-   * @returns Array of all available options
+   * Combined list of all available options (original + dynamically added)
    */
-  const allOptions = useMemo(() => {
-    return [...options, ...newOptions];
-  }, [options, newOptions]);
+  const allOptions = useMemo(() => [...options, ...newOptions], [options, newOptions]);
 
 
   return (
@@ -227,42 +218,31 @@ export const ObjectElementDisplay = <
          * For freeSolo mode, adds a special "Add [value]" option when there's no exact match
          */
         filterOptions: (options, { inputValue }) => {
-          if (!inputValue) {
-            return options;
-          }
+          if (!inputValue) return options;
 
-          // Filter options that match the input value
-          const filteredOptions = options.filter((option) => {
+          const searchValue = inputValue.toLowerCase();
+
+          // Filter options that match the input value (by key or label)
+          const filteredOptions = options.filter(option => {
             const key = getItemKey(option).toLowerCase();
-            const searchValue = inputValue.toLowerCase();
-            if (key.includes(searchValue)) return true;
-
-            // Convert label to string to ensure we can use includes() on it
             const label = String(getItemLabel(option)).toLowerCase();
-
-            // Return true if either the key or label contains the search value
-            return label.includes(searchValue);
+            return key.includes(searchValue) || label.includes(searchValue);
           });
 
-          // For freeSolo mode, check if there's an exact match
+          // For freeSolo mode, add "Add [value]" option if no exact match exists
           if (freeSolo && stringToNewItem && inputValue.length > 0) {
-            // Check if there's an exact match in the filtered options
-            const hasExactMatch = filteredOptions.some(option => {
-              const label = String(getItemLabel(option)).toLowerCase();
-              return label.toLowerCase() === inputValue.toLowerCase();
-            });
+            const hasExactMatch = filteredOptions.some(option => 
+              String(getItemLabel(option)).toLowerCase() === searchValue
+            );
 
-            // If there's no exact match, add a special option to create a new item
             if (!hasExactMatch) {
               // Create a special option with a __isAddOption flag
               const addOption: AddOptionType = {
                 __isAddOption: true,
                 inputValue,
-                // Include properties from stringToNewItem for type compatibility
-                ...stringToNewItem(inputValue)
+                ...stringToNewItem(inputValue) // Include properties for type compatibility
               };
 
-              // Add the special option at the beginning of the filtered options
               return [addOption as unknown as TValue, ...filteredOptions];
             }
           }
@@ -276,108 +256,88 @@ export const ObjectElementDisplay = <
 
         /**
          * Custom rendering for each option in the dropdown list
-         * Displays a checkbox for multiple selection if showCheckbox is true
-         * Uses getItemLabel to render the option label
-         * For special add options, displays "Add '[value]'"
+         * Handles both regular options and special "Add" options in freeSolo mode
          */
         renderOption: (liProps, option, { selected }, ownerState) => {
-          // Check if this is a special add option (only in freeSolo mode)
-          if (ownerState?.freeSolo && typeof option === 'object' && option !== null && '__isAddOption' in option) {
-            // Cast to AddOptionType to access inputValue property
-            const addOption = option as unknown as AddOptionType;
+          // Handle special "Add" option in freeSolo mode
+          if (ownerState?.freeSolo && 
+              typeof option === 'object' && 
+              option !== null && 
+              '__isAddOption' in option) {
+            const inputValue = (option as unknown as AddOptionType).inputValue;
             return (
-              <li {...liProps} key={`${name}-add-option-${addOption.inputValue}`}>
-                Add: '{addOption.inputValue}'
+              <li {...liProps} key={`${name}-add-option-${inputValue}`}>
+                Add: '{inputValue}'
               </li>
             );
           }
 
-          // Regular option rendering
+          // Handle regular option
           return (
             <li {...liProps} key={`${name}-option-${getItemKey(option)}`}>
-              {/* Show checkbox if explicitly requested or if in multiple selection mode */}
-              {(props?.showCheckbox || ownerState?.multiple) && <Checkbox sx={{ marginRight: 1 }} checked={selected} />}
+              {(props?.showCheckbox || ownerState?.multiple) && 
+                <Checkbox sx={{ marginRight: 1 }} checked={selected} />}
               {typeof option === "string" ? option : getItemLabel(option)}
             </li>
           );
         },
 
         onChange: (event, value, reason, details) => {
+          /**
+           * Helper function to apply transformValue if provided, otherwise return the original value
+           */
+          const applyTransform = (val: any) => {
+            return transformValue && val !== null 
+              ? field.onChange(transformValue(val))
+              : field.onChange(val);
+          };
+
+          /**
+           * Helper function to add a new item to newOptions if it doesn't exist already
+           */
+          const addToNewOptions = (item: TValue) => {
+            const itemKey = getItemKey(item);
+            const itemExists = [...options, ...newOptions].some(
+              option => getItemKey(option) === itemKey
+            );
+
+            if (!itemExists) {
+              setNewOptions(prev => [...prev, item]);
+            }
+          };
+
+          /**
+           * Helper function to extract input value from string or AddOption
+           */
+          const getInputValue = (item: any): string | null => {
+            if (typeof item === "string" && item.length > 0) {
+              return item;
+            }
+            if (typeof item === 'object' && item !== null && '__isAddOption' in item) {
+              return (item as unknown as AddOptionType).inputValue;
+            }
+            return null;
+          };
+
+          // Handle freeSolo mode with stringToNewItem function
           if (freeSolo && stringToNewItem) {
-            // Handle special add option selection
-            if (typeof value === 'object' && value !== null && '__isAddOption' in value) {
-              // Cast to AddOptionType to access inputValue property
-              const addOption = value as unknown as AddOptionType;
-              const inputValue = addOption.inputValue;
+            // Handle special add option selection or string input
+            const inputValue = getInputValue(value);
+
+            if (inputValue) {
               const newItem = stringToNewItem(inputValue);
 
-              // Handle multiple selection mode differently
               if (props.multiple) {
-                // Get the current field value as an array
+                // For multiple selection, add the new item to the current values
                 const currentValues = Array.isArray(field.value) ? field.value : [];
                 const newValues = [...currentValues, newItem];
-
-                // Apply transformValue if provided
-                if (transformValue) {
-                  field.onChange(transformValue(newValues));
-                } else {
-                  field.onChange(newValues);
-                }
+                applyTransform(newValues);
               } else {
-                // Apply transformValue if provided
-                if (transformValue) {
-                  field.onChange(transformValue(newItem));
-                } else {
-                  field.onChange(newItem);
-                }
+                // For single selection, just use the new item
+                applyTransform(newItem);
               }
 
-              // Add to newOptions if it doesn't exist already
-              const itemKey = getItemKey(newItem);
-              const itemExists = [...options, ...newOptions].some(
-                option => getItemKey(option) === itemKey
-              );
-
-              if (!itemExists) {
-                setNewOptions([...newOptions, newItem]);
-              }
-              return;
-            }
-
-            // Handle string values (single selection)
-            if (typeof value === "string" && value.length > 0) {
-              const newItem = stringToNewItem(value);
-
-              // Handle multiple selection mode differently
-              if (props.multiple) {
-                // Get the current field value as an array
-                const currentValues = Array.isArray(field.value) ? field.value : [];
-                const newValues = [...currentValues, newItem];
-
-                // Apply transformValue if provided
-                if (transformValue) {
-                  field.onChange(transformValue(newValues));
-                } else {
-                  field.onChange(newValues);
-                }
-              } else {
-                // Apply transformValue if provided
-                if (transformValue) {
-                  field.onChange(transformValue(newItem));
-                } else {
-                  field.onChange(newItem);
-                }
-              }
-
-              // Add to newOptions if it doesn't exist already
-              const itemKey = getItemKey(newItem);
-              const itemExists = [...options, ...newOptions].some(
-                option => getItemKey(option) === itemKey
-              );
-
-              if (!itemExists) {
-                setNewOptions([...newOptions, newItem]);
-              }
+              addToNewOptions(newItem);
               return;
             }
 
@@ -385,32 +345,20 @@ export const ObjectElementDisplay = <
             if (Array.isArray(value) && props.multiple) {
               // Convert any string values to objects and handle special add options
               const newValues = value?.map(item => {
-                if (typeof item === "string" && item.length > 0) {
-                  return stringToNewItem(item);
-                }
-                if (typeof item === 'object' && item !== null && '__isAddOption' in item) {
-                  // Cast to AddOptionType to access inputValue property
-                  const addOption = item as unknown as AddOptionType;
-                  return stringToNewItem(addOption.inputValue);
-                }
-                return item;
+                const inputVal = getInputValue(item);
+                return inputVal ? stringToNewItem(inputVal) : item;
               }) ?? [];
 
-              // Apply transformValue if provided
-              if (transformValue) {
-                field.onChange(transformValue(newValues));
-              } else {
-                field.onChange(newValues);
-              }
+              applyTransform(newValues);
 
               // Add any new items to newOptions
-              const existingKeys = [...options, ...newOptions].map(option => getItemKey(option));
+              const allOptionsKeys = [...options, ...newOptions].map(option => getItemKey(option));
               const newItems = newValues.filter(
-                item => typeof item !== "string" && !existingKeys.includes(getItemKey(item))
+                item => typeof item !== "string" && !allOptionsKeys.includes(getItemKey(item))
               );
 
               if (newItems.length > 0) {
-                setNewOptions([...newOptions, ...newItems]);
+                setNewOptions(prev => [...prev, ...newItems]);
               }
               return;
             }
@@ -418,10 +366,8 @@ export const ObjectElementDisplay = <
 
           // Default behavior for non-freeSolo cases
           if (transformValue && value !== null) {
-            // Apply transformValue if provided
-            field.onChange(transformValue(value as TValue | TValue[]));
+            applyTransform(value as TValue | TValue[]);
           } else {
-            // Otherwise use the default onChange handler
             autocompleteProps?.onChange?.(event, value, reason, details);
           }
         },
@@ -435,17 +381,17 @@ export const ObjectElementDisplay = <
         renderValue: (value, getItemProps, ownerState) => {
           const typedValue = getAutocompleteTypedValue(value, ownerState);
 
+          // Handle array values (multiple selection)
           if (Array.isArray(typedValue)) {
             return typedValue.map((v, index) => {
               // @ts-expect-error a key is returned, and the linter doesn't pick this up
               const { key, ...chipProps } = getItemProps({ index });
 
-              // For freeSolo values, we need to ensure we're getting the label correctly
-              // If v is a string, use it directly, otherwise use getItemLabel
+              // Get the label - use string directly or extract from object
               const label = typeof v === "string" ? v : getItemLabel(v);
 
-              // Get additional chip props based on the value if the function is provided
-              const valueSpecificProps =
+              // Get additional chip props if available
+              const valueSpecificProps = 
                 typeof v !== "string" && getChipProps ? getChipProps({ value: v, index }) : {};
 
               return (
@@ -459,14 +405,10 @@ export const ObjectElementDisplay = <
             });
           }
 
-          // For single selection, if the value is a string, use it directly
-          // Otherwise, use getItemLabel to extract the label from the object
-          // Make sure typedValue is not null or undefined before calling getItemLabel
-          return typeof typedValue === "string"
-            ? typedValue
-            : typedValue
-              ? getItemLabel(typedValue as NonNullable<TValue>)
-              : "";
+          // Handle single value - return string or extracted label
+          return typeof typedValue === "string" 
+            ? typedValue 
+            : typedValue ? getItemLabel(typedValue as NonNullable<TValue>) : "";
         },
         ...autocompleteProps,
       }}
