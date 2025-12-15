@@ -1,12 +1,20 @@
-import { type ElementType, ReactNode, useMemo, useState, useEffect } from "react";
-import { Checkbox, Chip, type ChipProps, type ChipTypeMap } from "@mui/material";
+import { type ElementType, useMemo, useState, useEffect } from "react";
+import {
+  ListItem,
+  Checkbox,
+  Chip,
+  type ChipProps,
+  type ChipTypeMap,
+  type ListItemProps,
+} from "@mui/material";
 import type { FieldPath, FieldValues } from "react-hook-form";
 import {
   AutocompleteElementDisplay,
   type AutocompleteElementDisplayProps,
 } from "./AutocompleteElementDisplay";
-import { getAutocompleteTypedValue } from "../utils";
+import { getAutocompleteTypedValue, isNonNullableString } from "../utils";
 import { useController } from "react-hook-form-mui";
+import { merge } from "lodash";
 
 /**
  * Interface for special "add option" objects used in freeSolo mode
@@ -15,6 +23,7 @@ import { useController } from "react-hook-form-mui";
 interface AddOptionType {
   __isAddOption: true;
   inputValue: string;
+
   [key: string]: any; // Allow for additional properties from stringToNewItem
 }
 
@@ -60,9 +69,18 @@ export type ObjectElementDisplayProps<
    * Can return any ReactNode for custom rendering.
    *
    * @param value - The option value or null
-   * @returns A ReactNode to display as the option label
+   * @returns A string to display as the option label
    */
-  getItemLabel: (value: TValue | null) => ReactNode;
+  getItemLabel: (value: TValue | null) => string;
+
+  /**
+   * Function to get additional props for an option list item.
+   * Used for customizing the rendering of the option.
+   *
+   * @param value - The option value or null
+   * @returns Additional props to apply to the list item
+   */
+  getItemProps: (value: TValue | null) => ListItemProps;
 
   /**
    * Function to convert a free text input string to a TValue object.
@@ -140,6 +158,7 @@ export const ObjectElementDisplay = <
   name,
   freeSolo,
   control,
+  getItemProps,
   ...props
 }: ObjectElementDisplayProps<
   TValue,
@@ -166,9 +185,10 @@ export const ObjectElementDisplay = <
     const fieldValues: TValue[] = Array.isArray(field.value) ? field.value : [field.value];
 
     // Keep only object values that don't exist in the options array
-    return fieldValues.filter(value => 
-      typeof value !== "string" && 
-      !options.some(option => getItemKey(option) === getItemKey(value))
+    return fieldValues.filter(
+      (value) =>
+        typeof value !== "string" &&
+        !options.some((option) => getItemKey(option) === getItemKey(value)),
     );
   });
 
@@ -182,14 +202,14 @@ export const ObjectElementDisplay = <
 
     const fieldValues: TValue[] = Array.isArray(field.value) ? field.value : [field.value];
     const newFieldOptions = fieldValues.filter(
-      (value) => 
-        typeof value !== "string" && 
-        ![...options, ...newOptions].some(option => getItemKey(option) === getItemKey(value))
+      (value) =>
+        typeof value !== "string" &&
+        ![...options, ...newOptions].some((option) => getItemKey(option) === getItemKey(value)),
     );
 
     // Only update newOptions if there are new values to add
     if (newFieldOptions.length > 0) {
-      setNewOptions(prevOptions => [...prevOptions, ...newFieldOptions]);
+      setNewOptions((prevOptions) => [...prevOptions, ...newFieldOptions]);
     }
   }, [field.value, options, newOptions, getItemKey]);
 
@@ -197,7 +217,6 @@ export const ObjectElementDisplay = <
    * Combined list of all available options (original + dynamically added)
    */
   const allOptions = useMemo(() => [...options, ...newOptions], [options, newOptions]);
-
 
   return (
     <AutocompleteElementDisplay
@@ -223,7 +242,7 @@ export const ObjectElementDisplay = <
           const searchValue = inputValue.toLowerCase();
 
           // Filter options that match the input value (by key or label)
-          const filteredOptions = options.filter(option => {
+          const filteredOptions = options.filter((option) => {
             const key = getItemKey(option).toLowerCase();
             const label = String(getItemLabel(option)).toLowerCase();
             return key.includes(searchValue) || label.includes(searchValue);
@@ -231,8 +250,8 @@ export const ObjectElementDisplay = <
 
           // For freeSolo mode, add "Add [value]" option if no exact match exists
           if (freeSolo && stringToNewItem && inputValue.length > 0) {
-            const hasExactMatch = filteredOptions.some(option => 
-              String(getItemLabel(option)).toLowerCase() === searchValue
+            const hasExactMatch = filteredOptions.some(
+              (option) => String(getItemLabel(option)).toLowerCase() === searchValue,
             );
 
             if (!hasExactMatch) {
@@ -240,7 +259,7 @@ export const ObjectElementDisplay = <
               const addOption: AddOptionType = {
                 __isAddOption: true,
                 inputValue,
-                ...stringToNewItem(inputValue) // Include properties for type compatibility
+                ...stringToNewItem(inputValue), // Include properties for type compatibility
               };
 
               return [addOption as unknown as TValue, ...filteredOptions];
@@ -259,26 +278,30 @@ export const ObjectElementDisplay = <
          * Handles both regular options and special "Add" options in freeSolo mode
          */
         renderOption: (liProps, option, { selected }, ownerState) => {
-          // Handle special "Add" option in freeSolo mode
-          if (ownerState?.freeSolo && 
-              typeof option === 'object' && 
-              option !== null && 
-              '__isAddOption' in option) {
+          // Handles the special "Add" option in freeSolo mode
+          const itemProps = merge(getItemProps(option), liProps);
+          if (
+            ownerState?.freeSolo &&
+            typeof option === "object" &&
+            option !== null &&
+            "__isAddOption" in option
+          ) {
             const inputValue = (option as unknown as AddOptionType).inputValue;
             return (
-              <li {...liProps} key={`${name}-add-option-${inputValue}`}>
+              <ListItem {...itemProps} key={`${name}-add-option-${inputValue}`}>
                 Add: '{inputValue}'
-              </li>
+              </ListItem>
             );
           }
 
           // Handle regular option
           return (
-            <li {...liProps} key={`${name}-option-${getItemKey(option)}`}>
-              {(props?.showCheckbox || ownerState?.multiple) && 
-                <Checkbox sx={{ marginRight: 1 }} checked={selected} />}
+            <ListItem {...liProps} key={`${name}-option-${getItemKey(option)}`}>
+              {(props?.showCheckbox || ownerState?.multiple) && (
+                <Checkbox sx={{ marginRight: 1 }} checked={selected} />
+              )}
               {typeof option === "string" ? option : getItemLabel(option)}
-            </li>
+            </ListItem>
           );
         },
 
@@ -287,7 +310,7 @@ export const ObjectElementDisplay = <
            * Helper function to apply transformValue if provided, otherwise return the original value
            */
           const applyTransform = (val: any) => {
-            return transformValue && val !== null 
+            return transformValue && val !== null
               ? field.onChange(transformValue(val))
               : field.onChange(val);
           };
@@ -298,11 +321,11 @@ export const ObjectElementDisplay = <
           const addToNewOptions = (item: TValue) => {
             const itemKey = getItemKey(item);
             const itemExists = [...options, ...newOptions].some(
-              option => getItemKey(option) === itemKey
+              (option) => getItemKey(option) === itemKey,
             );
 
             if (!itemExists) {
-              setNewOptions(prev => [...prev, item]);
+              setNewOptions((prev) => [...prev, item]);
             }
           };
 
@@ -313,7 +336,7 @@ export const ObjectElementDisplay = <
             if (typeof item === "string" && item.length > 0) {
               return item;
             }
-            if (typeof item === 'object' && item !== null && '__isAddOption' in item) {
+            if (typeof item === "object" && item !== null && "__isAddOption" in item) {
               return (item as unknown as AddOptionType).inputValue;
             }
             return null;
@@ -344,21 +367,24 @@ export const ObjectElementDisplay = <
             // Handle array values (multiple selection)
             if (Array.isArray(value) && props.multiple) {
               // Convert any string values to objects and handle special add options
-              const newValues = value?.map(item => {
-                const inputVal = getInputValue(item);
-                return inputVal ? stringToNewItem(inputVal) : item;
-              }) ?? [];
+              const newValues =
+                value?.map((item) => {
+                  const inputVal = getInputValue(item);
+                  return inputVal ? stringToNewItem(inputVal) : item;
+                }) ?? [];
 
               applyTransform(newValues);
 
               // Add any new items to newOptions
-              const allOptionsKeys = [...options, ...newOptions].map(option => getItemKey(option));
+              const allOptionsKeys = [...options, ...newOptions].map((option) =>
+                getItemKey(option),
+              );
               const newItems = newValues.filter(
-                item => typeof item !== "string" && !allOptionsKeys.includes(getItemKey(item))
+                (item) => typeof item !== "string" && !allOptionsKeys.includes(getItemKey(item)),
               );
 
               if (newItems.length > 0) {
-                setNewOptions(prev => [...prev, ...newItems]);
+                setNewOptions((prev) => [...prev, ...newItems]);
               }
               return;
             }
@@ -391,7 +417,7 @@ export const ObjectElementDisplay = <
               const label = typeof v === "string" ? v : getItemLabel(v);
 
               // Get additional chip props if available
-              const valueSpecificProps = 
+              const valueSpecificProps =
                 typeof v !== "string" && getChipProps ? getChipProps({ value: v, index }) : {};
 
               return (
@@ -405,10 +431,12 @@ export const ObjectElementDisplay = <
             });
           }
 
-          // Handle single value - return string or extracted label
-          return typeof typedValue === "string" 
-            ? typedValue 
-            : typedValue ? getItemLabel(typedValue as NonNullable<TValue>) : "";
+          // Handles single value - return string or extracted label
+          return isNonNullableString(typedValue)
+            ? typedValue
+            : typedValue
+              ? getItemLabel(typedValue as NonNullable<TValue>)
+              : "";
         },
         ...autocompleteProps,
       }}
