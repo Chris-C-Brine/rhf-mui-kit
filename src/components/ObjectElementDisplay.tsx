@@ -1,13 +1,13 @@
 import { type ElementType, useMemo, useState, useEffect } from "react";
 import {
-  ListItem,
   Checkbox,
   Chip,
+  ListItem,
   type ChipProps,
   type ChipTypeMap,
   type ListItemProps,
 } from "@mui/material";
-import type { FieldPath, FieldValues } from "react-hook-form";
+import type { FieldPath, FieldValue, FieldValues } from "react-hook-form";
 import {
   AutocompleteElementDisplay,
   type AutocompleteElementDisplayProps,
@@ -80,7 +80,7 @@ export type ObjectElementDisplayProps<
    * @param value - The option value or null
    * @returns Additional props to apply to the list item
    */
-  getItemProps: (value: TValue | null) => ListItemProps;
+  getOptionProps?: (value: TValue | null) => ListItemProps;
 
   /**
    * Function to convert a free text input string to a TValue object.
@@ -113,9 +113,9 @@ export type ObjectElementDisplayProps<
    * @param value - The value that would normally be sent to the form
    * @returns The transformed value to be stored in the form
    */
-  transformValue?: Multiple extends true
-    ? (value: TValue[]) => TFieldValues
-    : (value: TValue | null) => TFieldValues | null;
+  transformValue?: (
+    value: Multiple extends true ? TValue[] : TValue | null
+  ) => FieldValue<FieldValues>;
 };
 
 /**
@@ -158,7 +158,7 @@ export const ObjectElementDisplay = <
   name,
   freeSolo,
   control,
-  getItemProps,
+  getOptionProps,
   ...props
 }: ObjectElementDisplayProps<
   TValue,
@@ -216,7 +216,15 @@ export const ObjectElementDisplay = <
   /**
    * Combined list of all available options (original + dynamically added)
    */
-  const allOptions = useMemo(() => [...options, ...newOptions], [options, newOptions]);
+  const allOptions = useMemo(() => {
+    const seen = new Set();
+    return [...options, ...newOptions].filter((option) => {
+      const key = getItemKey(option);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+  }, [options, newOptions]);
 
   return (
     <AutocompleteElementDisplay
@@ -278,8 +286,9 @@ export const ObjectElementDisplay = <
          * Handles both regular options and special "Add" options in freeSolo mode
          */
         renderOption: (liProps, option, { selected }, ownerState) => {
+          const itemProps = merge(liProps, getOptionProps?.(option) ?? {});
+
           // Handles the special "Add" option in freeSolo mode
-          const itemProps = merge(getItemProps(option), liProps);
           if (
             ownerState?.freeSolo &&
             typeof option === "object" &&
@@ -296,8 +305,8 @@ export const ObjectElementDisplay = <
 
           // Handle regular option
           return (
-            <ListItem {...liProps} key={`${name}-option-${getItemKey(option)}`}>
-              {(props?.showCheckbox || ownerState?.multiple) && (
+            <ListItem {...itemProps} key={`${name}-option-${getItemKey(option)}`}>
+              {(props?.showCheckbox && ownerState?.multiple) && (
                 <Checkbox sx={{ marginRight: 1 }} checked={selected} />
               )}
               {typeof option === "string" ? option : getItemLabel(option)}

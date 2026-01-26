@@ -60,5 +60,5 @@ export const getTextElementDisplayProps = <PropType>(
   ) as PropType;
 
 export function isNonNullableString(value: any): value is NonNullable<string> {
-  return value != null && typeof value === 'string';
+return value != null && typeof value === 'string';
 }
