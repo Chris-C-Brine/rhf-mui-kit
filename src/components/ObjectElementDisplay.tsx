@@ -1,4 +1,4 @@
-import { type ElementType, useMemo, useState, useEffect } from "react";
+import { type ElementType, type ReactNode, useMemo, useState, useEffect } from "react";
 import {
   Checkbox,
   Chip,
@@ -69,9 +69,9 @@ export type ObjectElementDisplayProps<
    * Can return any ReactNode for custom rendering.
    *
    * @param value - The option value or null
-   * @returns A string to display as the option label
+   * @returns An option to show for the value
    */
-  getItemLabel: (value: TValue | null) => string | null;
+  getItemLabel: (value: TValue | null) => ReactNode;
 
   /**
    * Function to get additional props for an option list item.
