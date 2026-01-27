@@ -450,6 +450,7 @@ export const ObjectElementDisplay = <
         ...autocompleteProps,
       }}
       textFieldProps={{
+        ...props?.textFieldProps,
         /**
          * Determines the placeholder value based on the `field.value` and `props.textFieldProps.placeholder`.
          * If `field.value` is truthy, the placeholder will be an empty string.
@@ -458,7 +459,6 @@ export const ObjectElementDisplay = <
          * @type {string}
          */
         placeholder: field.value ? "" : props?.textFieldProps?.placeholder,
-        ...props?.textFieldProps,
       }}
     />
   );
