@@ -62,7 +62,7 @@ export type ObjectElementDisplayProps<
    * @param value - The option value or null
    * @returns A unique string key for the value
    */
-  getItemKey: (value: TValue | null) => string;
+  getItemKey: (value: TValue | null) => string | null;
 
   /**
    * Function to generate a display label for an option value.
@@ -71,7 +71,7 @@ export type ObjectElementDisplayProps<
    * @param value - The option value or null
    * @returns A string to display as the option label
    */
-  getItemLabel: (value: TValue | null) => string;
+  getItemLabel: (value: TValue | null) => string | null;
 
   /**
    * Function to get additional props for an option list item.
@@ -251,9 +251,9 @@ export const ObjectElementDisplay = <
 
           // Filter options that match the input value (by key or label)
           const filteredOptions = options.filter((option) => {
-            const key = getItemKey(option).toLowerCase();
+            const key = getItemKey(option)?.toLowerCase();
             const label = String(getItemLabel(option)).toLowerCase();
-            return key.includes(searchValue) || label.includes(searchValue);
+            return key?.includes(searchValue) || label.includes(searchValue);
           });
 
           // For freeSolo mode, add "Add [value]" option if no exact match exists
