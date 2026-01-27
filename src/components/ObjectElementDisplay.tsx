@@ -458,7 +458,10 @@ export const ObjectElementDisplay = <
          *
          * @type {string}
          */
-        placeholder: field.value === null || (Array.isArray(field.value) && field.value?.length === 0) ? "" : props?.textFieldProps?.placeholder,
+        placeholder:
+          field.value === null || (Array.isArray(field.value) && field.value?.length === 0)
+            ? props?.textFieldProps?.placeholder
+            : "",
       }}
     />
   );
