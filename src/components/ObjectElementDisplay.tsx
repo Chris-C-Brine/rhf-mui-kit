@@ -453,12 +453,12 @@ export const ObjectElementDisplay = <
         ...props?.textFieldProps,
         /**
          * Determines the placeholder value based on the `field.value` and `props.textFieldProps.placeholder`.
-         * If `field.value` is truthy, the placeholder will be an empty string.
+         * If `field.value` is null, the placeholder will be an empty string.
          * Otherwise, it uses `props.textFieldProps.placeholder` if available.
          *
          * @type {string}
          */
-        placeholder: field.value ? "" : props?.textFieldProps?.placeholder,
+        placeholder: field.value === null || (Array.isArray(field.value) && field.value?.length === 0) ? "" : props?.textFieldProps?.placeholder,
       }}
     />
   );
