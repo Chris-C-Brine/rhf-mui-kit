@@ -306,7 +306,7 @@ export const ObjectElementDisplay = <
           // Handle regular option
           return (
             <ListItem {...itemProps} key={`${name}-option-${getItemKey(option)}`}>
-              {(props?.showCheckbox && ownerState?.multiple) && (
+              {props?.showCheckbox && ownerState?.multiple && (
                 <Checkbox sx={{ marginRight: 1 }} checked={selected} />
               )}
               {typeof option === "string" ? option : getItemLabel(option)}
@@ -448,6 +448,17 @@ export const ObjectElementDisplay = <
               : "";
         },
         ...autocompleteProps,
+      }}
+      textFieldProps={{
+        /**
+         * Determines the placeholder value based on the `field.value` and `props.textFieldProps.placeholder`.
+         * If `field.value` is truthy, the placeholder will be an empty string.
+         * Otherwise, it uses `props.textFieldProps.placeholder` if available.
+         *
+         * @type {string}
+         */
+        placeholder: field.value ? "" : props?.textFieldProps?.placeholder,
+        ...props?.textFieldProps,
       }}
     />
   );
