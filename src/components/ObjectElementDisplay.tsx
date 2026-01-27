@@ -432,9 +432,9 @@ export const ObjectElementDisplay = <
               return (
                 <Chip
                   key={`${name}-chip-${key}`}
-                  {...valueSpecificProps}
                   {...chipProps}
-                  label={label}
+                  {...valueSpecificProps}
+                  label={valueSpecificProps?.label ?? label}
                 />
               );
             });
