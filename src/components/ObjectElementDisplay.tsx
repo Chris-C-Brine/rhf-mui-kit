@@ -403,6 +403,7 @@ export const ObjectElementDisplay = <
           if (transformValue && value !== null) {
             applyTransform(value as TValue | TValue[]);
           } else {
+            field.onChange(value);
             autocompleteProps?.onChange?.(event, value, reason, details);
           }
         },
