@@ -41,6 +41,7 @@ export const AutocompleteElementDisplay = <
   disableUnderline,
   textFieldProps,
   autocompleteProps,
+  transform,
   ...props
 }: AutocompleteElementDisplayProps<
   TValue,
@@ -86,6 +87,46 @@ export const AutocompleteElementDisplay = <
     [autocompleteProps, viewOnly],
   );
 
+  const transformAdjusted = useMemo(() => {
+    if (!autocompleteProps?.freeSolo || typeof transform?.input === "function") {
+      return transform;
+    }
+
+    const isOptionEqualToValue = (option: TValue, value: TValue): boolean => {
+      if (typeof autocompleteProps?.isOptionEqualToValue === "function") {
+        return autocompleteProps.isOptionEqualToValue(option, value);
+      }
+      const optionKey =
+        option && typeof option === "object" && "id" in option ? (option as { id: unknown }).id : option;
+      const valueKey =
+        value && typeof value === "object" && "id" in value ? (value as { id: unknown }).id : value;
+      return optionKey === valueKey;
+    };
+
+    const matchOptionByValue = (currentValue: TValue) =>
+      props.options.find((option) => {
+        if (props.matchId && option && typeof option === "object" && "id" in option) {
+          return (option as { id: unknown }).id === currentValue;
+        }
+        return isOptionEqualToValue(option, currentValue);
+      });
+
+    return {
+      ...transform,
+      input: (newValue: unknown) => {
+        if (props.multiple) {
+          const values = Array.isArray(newValue) ? newValue : [];
+          return values.map((currentValue) => {
+            if (typeof currentValue === "string") return currentValue;
+            return matchOptionByValue(currentValue as TValue) ?? currentValue;
+          }) as any;
+        }
+        if (typeof newValue === "string") return newValue as any;
+        return (matchOptionByValue(newValue as TValue) ?? newValue ?? null) as any;
+      },
+    };
+  }, [autocompleteProps, transform, props.matchId, props.multiple, props.options]);
+
   const textFieldAdjustedProps= useMemo(
     () => getTextElementDisplayProps(textFieldProps, viewOnly, disableUnderline),
     [textFieldProps, viewOnly, disableUnderline],
@@ -95,6 +136,7 @@ export const AutocompleteElementDisplay = <
     <AutocompleteElement
       autocompleteProps={autocompleteAdjustedProps}
       textFieldProps={textFieldAdjustedProps}
+      transform={transformAdjusted}
       {...props}
     />
   );
