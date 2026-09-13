@@ -12,8 +12,11 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "declaration": true,
+    "declarationMap": true,
     "declarationDir": "dist",
     "outDir": "dist",
+    "sourceMap": true,
+    "inlineSources": true,
     "noEmit": false,
     "jsx": "react-jsx",
 
