@@ -1,11 +1,16 @@
 import globals from "globals";
-import { parser } from "@typescript-eslint/parser";
-import { configs as tsConfigs } from "@typescript-eslint/eslint-plugin";
-import { defineConfig, globalIgnores } from "eslint/config";
+import parser from "@typescript-eslint/parser";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import { globalIgnores } from "eslint/config";
+import tseslint from 'typescript-eslint';
+
+const recommendedRules = tseslint.configs.recommended
+  .filter(c => c.rules)
+  .map(c => c.rules)
+  .reduce((acc, r) => ({...acc, ...r}), {});
 
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
-import jsxA11y from "eslint-plugin-jsx-a11y";
 
 import js from "@eslint/js";
 import json from "@eslint/json";
@@ -19,18 +24,19 @@ const currentGlobals = {
   ...globals.node
 };
 
-export default defineConfig([
-    globalIgnores(["dist", "node_modules", "eslint.config.cjs", "vite.config.ts"]), // Ignore files and folders
+export default [
+    globalIgnores(["dist", "node_modules", "eslint.config.cjs", "eslint.config.js", "tsconfig.json", "vite.config.ts"]), // Ignore files and folders
 
-    // JS files
+    // TS source files
     {
-      files: ['**/*.{ts,tsx}'],
-      extends: [
-        js.configs.recommended,
-        tsConfigs.recommended,
-        reactHooks.configs['recommended-latest'],
-        reactRefresh.configs.vite,
-      ],
+      files: ['src/**/*.{ts,tsx}'],
+      ignores: ['src/**/*.test.{ts,tsx}'],
+      ...js.configs.recommended,
+      plugins: {
+        "@typescript-eslint": tsPlugin,
+        "react-refresh": reactRefresh,
+        "react-hooks": reactHooks,
+      },
       languageOptions: {
         parser,
         globals: currentGlobals,
@@ -39,13 +45,6 @@ export default defineConfig([
           ecmaVersion: "latest",
           sourceType: "module"
         }
-      }
-    },
-    {
-      plugins: {
-        "react-refresh": reactRefresh,
-        "react-hooks": reactHooks,
-        "jsx-a11y": jsxA11y,
       },
       // Rule enables & overrides
       rules: {
@@ -60,11 +59,43 @@ export default defineConfig([
         "react-refresh/only-export-components": "error"
       }
     },
+    // TS test files
+    {
+      files: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
+      ...js.configs.recommended,
+      plugins: {
+        "@typescript-eslint": tsPlugin,
+        "react-hooks": reactHooks,
+      },
+      languageOptions: {
+        parser,
+        globals: currentGlobals,
+        parserOptions: {
+          project: "./tsconfig.test.json",
+          ecmaVersion: "latest",
+          sourceType: "module"
+        }
+      },
+      // Rule enables & overrides
+      rules: {
+        ...recommendedRules,
+        "react/react-in-jsx-scope": "off", // ESLint: 'React' must be in scope when using JSX (react/react-in-js-scope)
+        "@typescript-eslint/consistent-type-imports": "error",
+        "react-hooks/exhaustive-deps": [
+          "error", // Checks effect dependencies
+          {
+            additionalHooks: "(useOnMount)"
+          }
+        ],
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off"
+      }
+    },
 
     // Other file types
-    { files: ["**/*.json"], plugins: { json }, language: "json/json", extends: ["json/recommended"] },
-    { files: ["**/*.jsonc"], plugins: { json }, language: "json/jsonc", extends: ["json/recommended"] },
-    { files: ["**/*.json5"], plugins: { json }, language: "json/json5", extends: ["json/recommended"] },
-    { files: ["**/*.md"], plugins: { markdown }, language: "markdown/gfm", extends: ["markdown/recommended"] }, // GitHub Flavored Markdown
-    { files: ["**/*.css"], plugins: { css }, language: "css/css", extends: ["css/recommended"] }
-  ]);
+    { files: ["**/*.json"], plugins: { json }, language: "json/json" },
+    { files: ["**/*.jsonc"], plugins: { json }, language: "json/jsonc" },
+    { files: ["**/*.json5"], plugins: { json }, language: "json/json5" },
+    { files: ["**/*.md"], plugins: { markdown }, language: "markdown/gfm" }, // GitHub Flavored Markdown
+    { files: ["**/*.css"], plugins: { css }, language: "css/css" }
+];

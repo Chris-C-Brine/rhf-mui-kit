@@ -5,7 +5,7 @@ import type {
   ChipTypeMap,
   TextFieldProps,
 } from "@mui/material";
-import { ElementType } from "react";
+import type { ElementType } from "react";
 
 import lodash from "lodash";
 

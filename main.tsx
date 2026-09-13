@@ -147,7 +147,7 @@ const ObjectDisplayDemo = () => {
               name="Single Object Selection"
               label="Select a country"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               required
             />
@@ -161,7 +161,7 @@ const ObjectDisplayDemo = () => {
               name="Single Object Selection"
               label="Selected country"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               viewOnly
               required
@@ -176,7 +176,7 @@ const ObjectDisplayDemo = () => {
               name="Multiple Object Selection with Checkboxes"
               label="Select multiple countries"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               multiple
               showCheckbox
@@ -192,7 +192,7 @@ const ObjectDisplayDemo = () => {
               name="Multiple Object Selection with Checkboxes"
               label="Select multiple countries"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               multiple
               showCheckbox
@@ -246,7 +246,7 @@ const ObjectDisplayDemo = () => {
               label="Select countries with custom chips"
               options={countries}
               freeSolo
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               stringToNewItem={(value) => ({ id: `new-${value}`, name: value })}
               getChipProps={({ index }) => ({
@@ -265,7 +265,7 @@ const ObjectDisplayDemo = () => {
               name="Custom Chip Props"
               label="Select countries with custom chips"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               getChipProps={({ index }) => ({
                 color: index % 2 === 0 ? "primary" : "secondary",
@@ -288,7 +288,7 @@ const ObjectDisplayDemo = () => {
               name="Transform Value Example"
               label="Select a country"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               transformValue={(value) => ({
                 ...value,
@@ -309,7 +309,7 @@ const ObjectDisplayDemo = () => {
               name="Transform Value Example"
               label="Selected country with timestamp"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               transformValue={(value) => ({
                 ...value,
@@ -331,7 +331,7 @@ const ObjectDisplayDemo = () => {
               name="Transform Multiple Values"
               label="Select multiple countries"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               multiple
               transformValue={(values) => 
@@ -357,7 +357,7 @@ const ObjectDisplayDemo = () => {
               name="Transform Multiple Values"
               label="Selected countries with priority"
               options={countries}
-              getItemKey={(country) => country?.id || ""}
+              getItemKey={(country) => (typeof country === "string" ? country : country?.id || "")}
               getItemLabel={(country) => country?.name || ""}
               multiple
               transformValue={(values) => 
@@ -508,7 +508,7 @@ const ValidationElementDemo = () => {
           A hidden input field with React Hook Form integration.
         </Typography>
 
-        <Box mt={2}>
+        <Box sx={{ mt: 2 }}>
           <Typography variant="body2">
             This component renders a hidden input field that is included in form submission. It
             supports validation rules and error display.
@@ -585,7 +585,7 @@ const App = () => {
             <ObjectDisplayDemo />
             <TextElementDisplayDemo />
             <ValidationElementDemo />
-            <Box textAlign={"center"}>
+            <Box sx={{ textAlign: "center" }}>
               <Button variant={"outlined"} onClick={() => methods.reset()} sx={{ mr: 3 }}>
                 reset
               </Button>

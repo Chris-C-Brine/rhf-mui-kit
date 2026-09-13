@@ -23,6 +23,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "LICENSE"],
+  "include": ["src", "LICENSE", "main.tsx"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx", "**/test"]
 }

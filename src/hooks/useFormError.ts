@@ -1,4 +1,4 @@
-import { FieldError, FieldErrors, FieldValues } from 'react-hook-form';
+import type { FieldError, FieldErrors, FieldValues } from 'react-hook-form';
 import lodash from 'lodash';
 const { get } = lodash;
 

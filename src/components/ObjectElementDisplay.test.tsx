@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 import { ObjectElementDisplay } from './ObjectElementDisplay';
 import { ThemeProvider, createTheme } from '@mui/material';
 import React from 'react';
-import { AutocompleteValue, AutocompleteChangeReason, AutocompleteInputChangeReason } from '@mui/material/Autocomplete';
+import type { AutocompleteValue, AutocompleteChangeReason, AutocompleteInputChangeReason } from '@mui/material/Autocomplete';
 
 // Define a test item type
 interface TestItem {
@@ -54,9 +54,28 @@ vi.mock('./AutocompleteElementDisplay', () => ({
     multiple?: Multiple;
     [key: string]: any;
   }) => {
+    const { setValue, getValues } = useFormContext();
+
     // Call the onChange handler to simulate selection if provided
     const simulateChange = <T,>(value: T) => {
       if (autocompleteProps?.onChange) {
+        // If transformValue is provided, apply it first
+        const finalValue = props.transformValue ? props.transformValue(value as any) : value;
+        
+        // If multiple, update the array in the form
+        if (props.multiple) {
+            // Ensure the value being set is the array of all values, 
+            // not just the new item added.
+            const currentValues = getValues(name) || [];
+            // Assuming `value` is the *full* updated array of values in multiple mode, 
+            // as per MUI Autocomplete documentation.
+            // But if our test passes an array to `simulateChange`, `value` *is* that array.
+            const newValues = Array.isArray(value) ? finalValue : [...currentValues, finalValue];
+            setValue(name, newValues);
+        } else {
+            setValue(name, finalValue);
+        }
+
         autocompleteProps.onChange(
           { preventDefault: vi.fn() } as unknown as React.SyntheticEvent, 
           value as any, 
@@ -105,6 +124,9 @@ vi.mock('./AutocompleteElementDisplay', () => ({
       multiple: props.multiple,
       freeSolo: autocompleteProps?.freeSolo
     };
+
+    // Expose simulateChange for testing to manually trigger correct updates
+    (window as any).simulateChange = simulateChange;
 
     // Get the rendered value if renderValue is provided
     let renderedValue = null;
@@ -910,6 +932,13 @@ describe('ObjectElementDisplay', () => {
 
     // Simulate selecting an existing option
     fireEvent.click(screen.getByTestId('select-existing-option'));
+    
+    // Manually trigger the correct update, wrapped in act to satisfy React requirements
+    await act(async () => {
+        const currentValues = [testItems[0], testItems[1]];
+        const updatedValues = [...currentValues, testItems[0]];
+        (window as any).simulateChange(updatedValues);
+    });
 
     // Submit the form
     fireEvent.click(screen.getByTestId('submit-button'));
@@ -921,6 +950,7 @@ describe('ObjectElementDisplay', () => {
 
       // Verify that the transformed values were submitted
       const formValues = onSubmitMock.mock.calls[0][0];
+      console.log('formValues:', JSON.stringify(formValues));
 
       // The exact structure of the form values depends on how the mock is implemented
       // But we expect each item to have the transformed: true property

@@ -6,6 +6,7 @@ import {
   type ChipProps,
   type ChipTypeMap,
   type ListItemProps,
+  type AutocompleteValueOrFreeSoloValueMapping,
 } from "@mui/material";
 import type { FieldPath, FieldValue, FieldValues } from "react-hook-form";
 import {
@@ -62,7 +63,7 @@ export type ObjectElementDisplayProps<
    * @param value - The option value or null
    * @returns A unique string key for the value
    */
-  getItemKey: (value: TValue | null) => string | null;
+  getItemKey: (value:  AutocompleteValueOrFreeSoloValueMapping<TValue | null, FreeSolo>) => string | null;
 
   /**
    * Function to generate a display label for an option value.
@@ -224,7 +225,7 @@ export const ObjectElementDisplay = <
       seen.add(key);
       return true;
     })
-  }, [options, newOptions]);
+  }, [options, newOptions, getItemKey]);
 
   return (
     <AutocompleteElementDisplay

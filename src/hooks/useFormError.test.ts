@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useFormError } from './useFormError';
-import { FieldErrors } from 'react-hook-form';
+import type { FieldErrors } from 'react-hook-form';
 
 describe('useFormError', () => {
   it('should return error=false and empty helperText when no error exists', () => {

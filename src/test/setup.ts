@@ -1,5 +1,8 @@
 // Import jest-dom to extend expect with DOM-specific matchers
-import '@testing-library/jest-dom';
+import { expect } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+
+expect.extend(matchers);
 
 // Import React for JSX support in tests
 import React from 'react';

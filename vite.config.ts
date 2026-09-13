@@ -19,9 +19,9 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: resolve(import.meta.dirname, "src/index.ts"),
       name: "RhfMuiKit",
-      fileName: (format) => `index.${format === 'es' ? 'js' : 'cjs'}`,
+      fileName: (format: string) => `index.${format === 'es' ? 'js' : 'cjs'}`,
       formats: ["es", "cjs"],
     },
     rollupOptions: {
